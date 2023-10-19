@@ -26,6 +26,9 @@ extern int size_of_field;
 int check_bpm = -1;
 int check_packet_num = -1;
 
+unsigned int bpm_errors = 0;
+unsigned int packet_errors = 0;
+
 extern char **names;
 
 extern int program_terminate;
@@ -87,7 +90,7 @@ void *output_package(void *args){
             sleep(0);
         }
         char data[num_of_fields * size_of_field];
-        int status;
+        unsigned int status;
         memcpy(data, queue[current_q_r % queue_size].data, sizeof(char) * num_of_fields * size_of_field);
         status = queue[current_q_r % queue_size].status;
 
@@ -97,34 +100,37 @@ void *output_package(void *args){
             q_overflow = 0;
         }
         
-        int out = 0;
+        unsigned int out = 0;
         for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
             memcpy(&out, &data[i], sizeof(char) * size_of_field);
             printf("%d\t", out);
         }
-        printf("%d\n", status);
+        printf("%u\n", status);
 
-        int packets_sent = status >> 16;
-        int bpm_id =       (status & (0xF << 2)) >> 2;
-
-        printf("%d\t%d\n", bpm_id, packets_sent);
-
+        unsigned int packets_sent = status >> 16;
+        unsigned int bpm_id =       (status & (0xF << 2)) >> 2;
         
         if(check_bpm == -1)
             check_bpm = bpm_id;
         else
-            if(check_bpm != bpm_id)
+            if(check_bpm != bpm_id){
                 printf("zaporedje bpm napačno\n");
+                bpm_errors++;
+            }
             check_bpm = (bpm_id + 1) %number_of_bpm;
         
         if(check_packet_num == -1)
             check_packet_num = packets_sent;
         else
-            if(check_packet_num + 1 != packets_sent)
+            if(check_packet_num + 1 != packets_sent && check_packet_num != 65535){
                 printf("zaporedje paketov napačno\n");
+                packet_errors++;
+            }
             check_packet_num = packets_sent;
         if(program_terminate == 1){
             printf("terminate output\n");
+            sleep(1);
+            printf("bpm errors:\t\t%d\npacket errors:\t\t%d\n", bpm_errors, packet_errors);
             return 0;
         }
     }

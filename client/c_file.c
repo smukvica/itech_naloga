@@ -67,7 +67,7 @@ void load_params(const char *filename){
     fclose(f);
 }
 
-void *file_write(void *arguments){
+void *file_writer(void *arguments){
     FILE *write;
 
     int i = 0;

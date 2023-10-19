@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "c_receiver.h"
 #include "c_includes.h"
@@ -39,10 +40,12 @@ void *read_package(void *arguments){
 		printf("Could not create socket");
         exit(1);
 	}
+
+    arg_struct *args = arguments;
 		
-	server.sin_addr.s_addr = inet_addr("127.0.0.1");
+	server.sin_addr.s_addr = inet_addr(args->ip);
 	server.sin_family = AF_INET;
-	server.sin_port = htons(8888);
+	server.sin_port = htons(args->port);
 
 	//Connect to remote server
 	if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -54,8 +57,10 @@ void *read_package(void *arguments){
 	puts("Connected\n");
 
     char data[num_of_fields * size_of_field];
-    int status;
+    unsigned int status;
     int i = 0;
+
+    double t = omp_get_wtime();
 
     while(1){
         if( recv(socket_desc, &server_reply, num_of_fields * size_of_field + 4, 0) < 0)
@@ -87,7 +92,10 @@ void *read_package(void *arguments){
         sem_post(&semaphore_file);
         i++;
         if(program_terminate == 1){
+            t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
+            sleep(1);
+            printf("total packages:\t\t%d\ntotal time running:\t%f\npackages per second:\t%f\n", i, t, (double)i / t);
             return 0;
         }
     }

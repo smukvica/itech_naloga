@@ -23,18 +23,15 @@ char **names;
 sem_t semaphore_output;
 sem_t semaphore_file;
 
-
 package *queue;
 int current_q_w = 0;
 int current_q_r = 0;
 int current_limit = 0;
 int q_overflow = 0;
 
-
-
 pthread_t receiver;
 pthread_t output;
-pthread_t file;
+pthread_t writer;
 
 char *file_queue[2];
 int switch_buffer = 0;
@@ -109,21 +106,19 @@ void sigint_handler(){
 
 int main(int argc , char *argv[])
 {
-
-    /*
-        arguments:      name value
-            queue_size
-            number_of_packets
-            number_of_bpm
-            file_entries
-    */
-
     signal(SIGINT, sigint_handler);
 
     if(strcmp(argv[1], "read_file") == 0){
         read_file(argv[2]);
         return 0;
     }
+
+    arg_struct arguments;
+    strcpy(arguments.ip, "127.0.0.1");
+    arguments.port = 8888;
+
+    int file_write = 1;
+    int std_output = 1;
 
     int c = 1;
     while(c < argc){
@@ -150,6 +145,18 @@ int main(int argc , char *argv[])
         if(strcmp(argv[c], "file_entries") == 0){
             file_entries = atoi(argv[c+1]);
         }
+        if(strcmp(argv[c], "ip") == 0){
+            strcpy(arguments.ip, argv[c+1]);
+        }
+        if(strcmp(argv[c], "port") == 0){
+            arguments.port = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "writer") == 0){
+            file_write = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "output") == 0){
+            std_output = atoi(argv[c+1]);
+        }
         c += 2;
     }
 
@@ -161,22 +168,30 @@ int main(int argc , char *argv[])
     sem_init(&semaphore_output, 0, 1);
     sem_init(&semaphore_file, 0, 1);
 
-    pthread_create(&receiver, NULL, read_package, NULL);
-    pthread_create(&output, NULL, output_package, NULL);
-    pthread_create(&file, NULL, file_write, NULL);
+    pthread_create(&receiver, NULL, read_package, (void*)&arguments);
+    if(std_output)
+        pthread_create(&output, NULL, output_package, NULL);
+    if(file_write)
+        pthread_create(&writer, NULL, file_writer, NULL);
     
 
     while(program_terminate != 1){
 
     }
 
-    pthread_join(output, NULL);
+    
     pthread_join(receiver, NULL);
-    pthread_join(file, NULL);
+    if(std_output)
+        pthread_join(output, NULL);
+    if(file_write)
+        pthread_join(writer, NULL);
 	
     free_queue_memory();
     free_names_memory();
     free_file_memory();
+
+    sem_destroy(&semaphore_output);
+    sem_destroy(&semaphore_file);
 
 	return 0;
 }
@@ -186,11 +201,11 @@ int main(int argc , char *argv[])
 /*
 
 compile:
-gcc *.c -lpthread -o client
+gcc *.c -lpthread -fopenmp -o client
 
 run:
 ./client read_file "filename" # reading a single file and outputing
-./client structure 3x4 A B C queue_size 100 number_of_bpm 1 file_entries 100 # any parameter can be skipped except structure
+./client structure 3x4 A B C queue_size 100 number_of_bpm 1 file_entries 100 output 1 writer 1  port xxxxx ip xxx.xx.x.x# any parameter can be skipped except structure
 
 
 stop:

@@ -27,7 +27,7 @@ void create_byte(int num, char *data){
 void create_packet(char *packet){
     char fields[num_of_fields * size_of_field];
 
-    int status = 0;
+    unsigned int status = 0;
 
     status |= packets_sent << 16;
     status |= (char)current_bpm << 2;
@@ -50,7 +50,7 @@ void create_packet(char *packet){
         memcpy(&out, &fields[i], sizeof(char) * size_of_field);
         printf("%d\t", out);
     }
-    printf("%d\n", status);
+    printf("%u\n", status);
 }
 
 void setup_names_memory(int f){
@@ -69,13 +69,6 @@ void free_names_memory(){
 
 int main(int argc , char *argv[])
 {
-
-    /*
-        arguments:      name value
-            number_of_packets
-            number_of_bpm
-            structure #x# names - #x# (fields x size) names of fields then
-    */
     int i = 1;
     while(i < argc){
         if(strcmp(argv[i], "structure") == 0){
@@ -146,6 +139,7 @@ int main(int argc , char *argv[])
         
         write(new_socket, message, num_of_fields*size_of_field+4);
         packets_sent++;
+        sleep(0.001);
     }
 
     close(socket_desc);
@@ -155,7 +149,6 @@ int main(int argc , char *argv[])
     return 0;
 }
 
-/*
 
 /*
 
@@ -168,9 +161,6 @@ run:
 
 stop:
 Ctrl + C
-
-
-*/
 
 
 */

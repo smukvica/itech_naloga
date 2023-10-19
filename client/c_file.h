@@ -3,4 +3,4 @@
 void save_params();
 void load_params(const char *filename);
 
-void *file_write(void *arguments);
+void *file_writer(void *arguments);
