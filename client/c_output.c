@@ -18,6 +18,7 @@ extern sem_t semaphore_output;
 
 extern package *queue;
 
+extern int number_of_packets;
 extern int number_of_bpm;
 extern int num_of_fields;
 extern int size_of_field;
@@ -25,12 +26,18 @@ extern int size_of_field;
 int check_bpm = -1;
 int check_packet_num = -1;
 
+extern char **names;
+
+extern int program_terminate;
 
 
 void *output_package(void *args){
     int i = 0;
-    printf("sum\tx\ty\tstatus\n");
-    while(i < 1000){
+    for(int i = 0; i < num_of_fields; i++){
+        printf("%s\t", names[i]);
+    }
+    printf("status\n");
+    while(1){
         while(q_overflow != 1 && current_q_r == current_limit){
             sem_wait(&semaphore_output);
             current_limit = current_q_w;
@@ -75,5 +82,9 @@ void *output_package(void *args){
                 printf("zaporedje paketov napačno\n");
             check_packet_num = packets_sent;
         i++;
+        if(program_terminate == 1){
+            printf("terminate output\n");
+            return 0;
+        }
     }
 }

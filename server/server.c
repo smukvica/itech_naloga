@@ -140,7 +140,7 @@ int main(int argc , char *argv[])
     printf("status\n");
 
     char message[num_of_fields*size_of_field+4];
-    while(packets_sent < number_of_packets){
+    while(1){
 
         create_packet(message);
         

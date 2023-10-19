@@ -21,6 +21,13 @@ extern int size_of_field;
 extern int q_overflow;
 extern int current_q_w;
 
+extern char *file_queue[2];
+extern int file_entries;
+extern int switch_buffer;
+int file_buffer_r = 0;
+
+extern int program_terminate;
+
 void *read_package(void *arguments){
     int socket_desc;
 	struct sockaddr_in server;
@@ -50,7 +57,7 @@ void *read_package(void *arguments){
     int status;
     int i = 0;
 
-    while(i < number_of_packets){
+    while(1){
         if( recv(socket_desc, &server_reply, num_of_fields * size_of_field + 4, 0) < 0)
         {
             puts("recv failed");
@@ -59,7 +66,11 @@ void *read_package(void *arguments){
         memcpy(&status,server_reply + num_of_fields * size_of_field,sizeof(int));
 
         queue[current_q_w % queue_size].status = status;
-        memcpy(queue[current_q_w % queue_size].data, &data, sizeof(char) * num_of_fields * size_of_field);
+        memcpy(queue[current_q_w % queue_size].data, data, sizeof(char) * num_of_fields * size_of_field);
+
+        memcpy(file_queue[file_buffer_r] + (i % file_entries) * (num_of_fields * size_of_field + 4), server_reply, num_of_fields * size_of_field + 4);
+
+        
         sem_wait(&semaphore_output);
         current_q_w++;
         if(current_q_w == INT_MAX){
@@ -67,6 +78,17 @@ void *read_package(void *arguments){
             q_overflow = 1;
         }
         sem_post(&semaphore_output);
+
+        sem_wait(&semaphore_file);
+        if(current_q_w % file_entries == 0){
+            switch_buffer = 1;
+            file_buffer_r = (file_buffer_r + 1) % 2;
+        }
+        sem_post(&semaphore_file);
         i++;
+        if(program_terminate == 1){
+            printf("terminate receiver\n");
+            return 0;
+        }
     }
 }
