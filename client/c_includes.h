@@ -1,8 +1,6 @@
 #pragma once
 
 typedef struct package{
-    int sum;
-    int x;
-    int y;
+    char *data;
     int status;
 }package;

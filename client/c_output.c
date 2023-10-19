@@ -2,6 +2,7 @@
 #include <semaphore.h>
 #include <limits.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "c_output.h"
 #include "c_includes.h"
@@ -15,9 +16,11 @@ extern int current_limit;
 
 extern sem_t semaphore_output;
 
-extern package queue[];
+extern package *queue;
 
 extern int number_of_bpm;
+extern int num_of_fields;
+extern int size_of_field;
 
 int check_bpm = -1;
 int check_packet_num = -1;
@@ -34,10 +37,9 @@ void *output_package(void *args){
             sem_post(&semaphore_output);
             sleep(0);
         }
-        int sum, x, y, status;
-        sum = queue[current_q_r % queue_size].sum;
-        x = queue[current_q_r % queue_size].x;
-        y = queue[current_q_r % queue_size].y;
+        char data[num_of_fields * size_of_field];
+        int status;
+        memcpy(data, queue[current_q_r % queue_size].data, sizeof(char) * num_of_fields * size_of_field);
         status = queue[current_q_r % queue_size].status;
 
         current_q_r++;
@@ -46,7 +48,12 @@ void *output_package(void *args){
             q_overflow = 0;
         }
         
-        printf("%d\t%d\t%d\t%d\n", sum, x, y, status);
+        int out = 0;
+        for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
+            memcpy(&out, &data[i], sizeof(char) * size_of_field);
+            printf("%d\t", out);
+        }
+        printf("%d\n", status);
 
         int packets_sent = status >> 16;
         int bpm_id =       (status & (0xF << 2)) >> 2;

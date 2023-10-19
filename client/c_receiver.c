@@ -11,10 +11,12 @@
 
 extern int queue_size;
 extern sem_t semaphore_output;
-extern package queue[];
+extern sem_t semaphore_file;
+extern package *queue;
 
 extern int number_of_packets;
-extern int packet_size;
+extern int num_of_fields;
+extern int size_of_field;
 
 extern int q_overflow;
 extern int current_q_w;
@@ -22,7 +24,7 @@ extern int current_q_w;
 void *read_package(void *arguments){
     int socket_desc;
 	struct sockaddr_in server;
-	char server_reply[packet_size];
+	char server_reply[num_of_fields * size_of_field + 4];
 
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_desc == -1)
@@ -44,21 +46,20 @@ void *read_package(void *arguments){
 	
 	puts("Connected\n");
 
-    int sum, x, y, status;
+    char data[num_of_fields * size_of_field];
+    int status;
     int i = 0;
 
     while(i < number_of_packets){
-        if( recv(socket_desc, &server_reply, packet_size, 0) < 0)
+        if( recv(socket_desc, &server_reply, num_of_fields * size_of_field + 4, 0) < 0)
         {
             puts("recv failed");
         }
-        memcpy(&sum,server_reply,sizeof(int));
-        memcpy(&x,server_reply+4,sizeof(int));
-        memcpy(&y,server_reply+8,sizeof(int));
-        memcpy(&status,server_reply+12,sizeof(int));
+        memcpy(&data,server_reply,sizeof(char) * num_of_fields * size_of_field);
+        memcpy(&status,server_reply + num_of_fields * size_of_field,sizeof(int));
 
-
-        queue[current_q_w % queue_size] = (package){.sum = sum, .x = x, .y = y, .status = status};
+        queue[current_q_w % queue_size].status = status;
+        memcpy(queue[current_q_w % queue_size].data, &data, sizeof(char) * num_of_fields * size_of_field);
         sem_wait(&semaphore_output);
         current_q_w++;
         if(current_q_w == INT_MAX){
