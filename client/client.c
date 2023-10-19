@@ -86,8 +86,6 @@ void read_file(const char *file){
 
     load_params("params.txt");
 
-    number_of_packets = 100;
-
     setup_queue_memory();
 
     char buffer[num_of_fields * size_of_field + 4];
@@ -99,9 +97,7 @@ void read_file(const char *file){
         memcpy(&queue[i].status, buffer + num_of_fields * size_of_field, 4);
     }
 
-    current_limit = 130;
-
-    output_package(NULL);
+    output_from_file(file_entries);
 
     free_queue_memory();
     free_names_memory();
@@ -171,7 +167,7 @@ int main(int argc , char *argv[])
     
 
     while(program_terminate != 1){
-        
+
     }
 
     pthread_join(output, NULL);
@@ -184,3 +180,21 @@ int main(int argc , char *argv[])
 
 	return 0;
 }
+
+
+
+/*
+
+compile:
+gcc *.c -lpthread -o client
+
+run:
+./client read_file "filename" # reading a single file and outputing
+./client structure 3x4 A B C queue_size 100 number_of_bpm 1 file_entries 100 # any parameter can be skipped except structure
+
+
+stop:
+Ctrl + C
+
+
+*/

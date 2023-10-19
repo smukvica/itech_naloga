@@ -154,3 +154,23 @@ int main(int argc , char *argv[])
 
     return 0;
 }
+
+/*
+
+/*
+
+compile:
+gcc *.c -o server
+
+run:
+./server structure 3x4 A B C number_of_bpm 1 # number of bpm can be skipped
+
+
+stop:
+Ctrl + C
+
+
+*/
+
+
+*/
