@@ -104,6 +104,49 @@ void sigint_handler(){
     program_terminate = 1;
 }
 
+void print_argument(const char *arg, const char *explain, const char *usage){
+    printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
+}
+
+void print_help(){
+    printf("Help\n");
+    printf("arguments:\n");
+    print_argument("number_of_fields",
+                   "set the number of data fields in packets. limited from 1 to 10",
+                   "number_of_fields 5");
+    print_argument("size_of_field",
+                   "set the size of each data field in packet. limited to 1, 2, 4",
+                   "size_of_field 4");
+    print_argument("number_of_packets",
+                   "set limit of packets sent.",
+                   "number_of_packets 1000");
+    print_argument("number_of_bpm",
+                   "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
+                   "number_of_bpm 1");
+    print_argument("queue_size",
+                   "size of queue accepting new packets",
+                   "queue_size 100");
+    print_argument("file_entries",
+                   "numbre of file entries in file when saving to file",
+                   "file_entries 100");
+    print_argument("ip",
+                   "set the ip of machine to connect to",
+                   "ip 127.0.0.1");
+    print_argument("port",
+                   "set the port of the machine to connect to",
+                   "port 8888");
+    print_argument("writer",
+                   "set to write to file or not",
+                   "writer 1");
+    print_argument("output",
+                   "set to write to standard output or not",
+                   "output 1");
+    print_argument("read_file",
+                   "read from a given file the data and print to standard out",
+                   "read_file file1.bin");
+    printf("at the end of all commands write the names of the data fields in order\n");
+}
+
 int main(int argc , char *argv[])
 {
     signal(SIGINT, sigint_handler);
@@ -121,17 +164,25 @@ int main(int argc , char *argv[])
     int std_output = 1;
 
     int c = 1;
-    while(c < argc){
-        if(strcmp(argv[c], "structure") == 0){
-            int f,s;
-            sscanf(argv[c+1], "%dx%d", &f, &s);
-            setup_names_memory(f);
-            for(int k = 0; k < f; k++){
-                strcpy(names[k], argv[c+2+k]);
+    if(strcmp(argv[1], "help") == 0){
+        print_help();
+        return 0;
+    }
+    while(c < argc - num_of_fields){
+        if(strcmp(argv[c], "number_of_fields") == 0){
+            num_of_fields = atoi(argv[c+1]);
+            if(num_of_fields < 1 || num_of_fields > 10){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
             }
-            c += f;
-            num_of_fields = f;
-            size_of_field = s;
+            setup_names_memory(num_of_fields);
+        }
+        if(strcmp(argv[c], "size_of_field") == 0){
+            size_of_field = atoi(argv[c+1]);
+            if(size_of_field != 1 && size_of_field != 2 && size_of_field != 4){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
         }
         if(strcmp(argv[c], "queue_size") == 0){
             queue_size = atoi(argv[c+1]);
@@ -141,6 +192,10 @@ int main(int argc , char *argv[])
         }
         if(strcmp(argv[c], "number_of_bpm") == 0){
             number_of_bpm = atoi(argv[c+1]);
+            if(number_of_bpm < 1 || number_of_bpm > 4){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
         }
         if(strcmp(argv[c], "file_entries") == 0){
             file_entries = atoi(argv[c+1]);
@@ -158,6 +213,9 @@ int main(int argc , char *argv[])
             std_output = atoi(argv[c+1]);
         }
         c += 2;
+    }
+    for(int k = 0; k < num_of_fields; k++){
+        strcpy(names[k], argv[c+k]);
     }
 
     save_params();
@@ -202,11 +260,6 @@ int main(int argc , char *argv[])
 
 compile:
 gcc *.c -lpthread -fopenmp -o client
-
-run:
-./client read_file "filename" # reading a single file and outputing
-./client structure 3x4 A B C queue_size 100 number_of_bpm 1 file_entries 100 output 1 writer 1  port xxxxx ip xxx.xx.x.x# any parameter can be skipped except structure
-
 
 stop:
 Ctrl + C

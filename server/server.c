@@ -6,16 +6,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 int packets_sent = 0;
-int number_of_packets = 1000;
+int number_of_packets = 100000;
 int number_of_bpm = 1;
 int current_bpm = 0;
 
 int num_of_fields = 3;
 int size_of_field = 4; // size in bytes
 
-char **names;
+int send_rate = 10000;
 
 void create_byte(int num, char *data){
     for(int i = 1; i < size_of_field; i++){
@@ -53,47 +54,69 @@ void create_packet(char *packet){
     printf("%u\n", status);
 }
 
-void setup_names_memory(int f){
-    names = malloc(sizeof(char*) * f);
-    for(int i = 0; i < f; i++){
-        names[i] = malloc(sizeof(char) * 10);
-    }
+void print_argument(const char *arg, const char *explain, const char *usage){
+    printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
 }
 
-void free_names_memory(){
-    for(int i = 0; i < num_of_fields; i++){
-        free(names[i]);
-    }
-    free(names);
+void print_help(){
+    printf("Help\n");
+    printf("arguments:\n");
+    print_argument("number_of_fields",
+                   "set the number of data fields in packets. limited from 1 to 10",
+                   "number_of_fields 5");
+    print_argument("size_of_field",
+                   "set the size of each data field in packet. limited to 1, 2, 4",
+                   "size_of_field 4");
+    print_argument("number_of_packets",
+                   "set limit of packets sent.",
+                   "number_of_packets 1000");
+    print_argument("number_of_bpm",
+                   "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
+                   "number_of_bpm 1");
+    print_argument("send_rate",
+                   "set the speed of transmission of packets",
+                   "send_rate 10000");
 }
+
 
 int main(int argc , char *argv[])
 {
     int i = 1;
+    if(strcmp(argv[1], "help") == 0){
+        print_help();
+        return 0;
+    }
     while(i < argc){
-        if(strcmp(argv[i], "structure") == 0){
-            int f,s;
-            sscanf(argv[i+1], "%dx%d", &f, &s);
-            setup_names_memory(f);
-            for(int k = 0; k < f; k++){
-                strcpy(names[k], argv[i+2+k]);
+        if(strcmp(argv[i], "number_of_fields") == 0){
+            num_of_fields = atoi(argv[i+1]);
+            if(num_of_fields < 1 || num_of_fields > 10){
+                printf("wrong usage of argument %s. see help\n", argv[i]);
+                return 1;
             }
-            i += f;
-            num_of_fields = f;
-            size_of_field = s;
+        }
+        if(strcmp(argv[i], "size_of_field") == 0){
+            size_of_field = atoi(argv[i+1]);
+            if(size_of_field != 1 && size_of_field != 2 && size_of_field != 4){
+                printf("wrong usage of argument %s. see help\n", argv[i]);
+                return 1;
+            }
         }
         if(strcmp(argv[i], "number_of_packets") == 0){
             number_of_packets = atoi(argv[i+1]);
         }
         if(strcmp(argv[i], "number_of_bpm") == 0){
             number_of_bpm = atoi(argv[i+1]);
+            if(number_of_bpm < 1 || number_of_bpm > 4){
+                printf("wrong usage of argument %s. see help\n", argv[i]);
+                return 1;
+            }
         }
+        if(strcmp(argv[i], "send_rate") == 0){
+            send_rate = atoi(argv[i+1]);
+        }
+        
         i += 2;
     }
-
-    srand(5);
-
-    printf("%d\n", number_of_packets);
 
 	int socket_desc, new_socket, c;
     struct sockaddr_in server, client;
@@ -126,25 +149,30 @@ int main(int argc , char *argv[])
 	{
 		printf("accept failed\n");
 	}
-	
-	for(int i = 0; i < num_of_fields; i++){
-        printf("%s\t", names[i]);
-    }
-    printf("status\n");
 
     char message[num_of_fields*size_of_field+4];
-    while(1){
 
-        create_packet(message);
+    double t = omp_get_wtime();
+
+    double time_between_packets = 1.0 / send_rate;
+    double current_time_between_packets = 0.0;
+    double loop_time = 0.0;
+
+    while(packets_sent < number_of_packets){
+        loop_time = omp_get_wtime() - t;
+        t += loop_time;
+        current_time_between_packets += loop_time;
+        if(current_time_between_packets >= time_between_packets){
+            current_time_between_packets = 0.0;
+
+            create_packet(message);
         
-        write(new_socket, message, num_of_fields*size_of_field+4);
-        packets_sent++;
-        sleep(0.001);
+            write(new_socket, message, num_of_fields*size_of_field+4);
+            packets_sent++;
+        }
     }
 
     close(socket_desc);
-
-    free_names_memory();
 
     return 0;
 }
@@ -153,14 +181,16 @@ int main(int argc , char *argv[])
 /*
 
 compile:
-gcc *.c -o server
+gcc *.c -fopenmp -o server
 
 run:
-./server structure 3x4 A B C number_of_bpm 1 # number of bpm can be skipped
+./server 
 
+virtual box
 
 stop:
 Ctrl + C
+automatically after number of packets is sent
 
 
 */

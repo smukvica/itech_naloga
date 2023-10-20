@@ -29,11 +29,18 @@ int check_packet_num = -1;
 unsigned int bpm_errors = 0;
 unsigned int packet_errors = 0;
 
+int number_of_consecutive_errors = 0;
+int previously_error = 0;
+
 extern char **names;
 
 extern int program_terminate;
 
 void output_from_file(int number_of_elements){
+    for(int i = 0; i < num_of_fields; i++){
+        printf("%s\t", names[i]);
+    }
+    printf("status\n");
     int i = 0;
     while(i < number_of_elements){
         char data[num_of_fields * size_of_field];
@@ -57,9 +64,6 @@ void output_from_file(int number_of_elements){
         int packets_sent = status >> 16;
         int bpm_id =       (status & (0xF << 2)) >> 2;
 
-        printf("%d\t%d\n", bpm_id, packets_sent);
-
-        
         if(check_bpm == -1)
             check_bpm = bpm_id;
         else
@@ -124,7 +128,17 @@ void *output_package(void *args){
         else
             if(check_packet_num + 1 != packets_sent && check_packet_num != 65535){
                 printf("zaporedje paketov napačno\n");
+                if(previously_error == 0){
+                    previously_error = 1;
+                }
+                if(previously_error == 1){
+                    number_of_consecutive_errors++;
+                }
                 packet_errors++;
+            }
+            else{
+                previously_error = 0;
+                number_of_consecutive_errors = 0;
             }
             check_packet_num = packets_sent;
         if(program_terminate == 1){
@@ -132,6 +146,10 @@ void *output_package(void *args){
             sleep(1);
             printf("bpm errors:\t\t%d\npacket errors:\t\t%d\n", bpm_errors, packet_errors);
             return 0;
+        }
+
+        if(number_of_consecutive_errors > 100){
+            program_terminate = 1;
         }
     }
 }
