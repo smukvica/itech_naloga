@@ -204,7 +204,9 @@ int main(int argc , char *argv[])
     }
     
 
-    gui_setup();
+    int ret = gui_setup();
+    if(ret)
+        return 1;
     save_params();
 
     setup_queue_memory();

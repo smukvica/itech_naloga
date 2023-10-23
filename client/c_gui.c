@@ -301,7 +301,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-void gui_setup(void *args){
+int gui_setup(){
     
 	InitWindow(250, 400, "Client");
 
@@ -324,7 +324,7 @@ void gui_setup(void *args){
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
-	while (1)
+	while (!WindowShouldClose())
 	{
 		// Draw 
 		//----------------------------------------------------------------------------------
@@ -376,18 +376,16 @@ void gui_setup(void *args){
                 std_output = 1;
             else
                 std_output = 0;
-            break;
+            CloseWindow();
+            return 0;
 		}
 		
 		EndDrawing();
         //----------------------------------------------------------------------------------
-        if(WindowShouldClose()){
-            break;
-        }
 	}
     
 	CloseWindow();
-    
+    return 1;
 }
 
 void *gui_draw(void *args){

@@ -8,5 +8,5 @@ int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, int 
 int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode);
 int get_index_of_value(int value, const char *text);
 
-void gui_setup();
+int gui_setup();
 void *gui_draw(void *args);
