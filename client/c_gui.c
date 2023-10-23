@@ -12,15 +12,14 @@
 *       gcc -o $(NAME_PART).exe $(FILE_NAME) -I../../src -lraylib -lopengl32 -lgdi32 -std=c99
 *
 **********************************************************************************************/
+
 #include <raylib.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-int guiFloatingPointIndex = 0;                                                                                // Global variable shared by all GuiFLoatBox()
 
 extern int program_terminate;
-
 extern int num_of_fields;
 extern int size_of_field;
 extern int queue_size;
@@ -43,8 +42,6 @@ int queue_size_value = 1000;
 int port_value = 8888;
 int file_entries_value = 100;
 
-extern int program_terminate;
-int connect = 0;
 
 int get_index_of_value(int value, const char *text){
     int index = 0;
@@ -116,8 +113,6 @@ int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, int 
                     int key = GetCharPressed();
                     if ((key >= 48) && (key <= 57))
                     {
-                        if (guiFloatingPointIndex && guiFloatingPointIndex != 4) guiFloatingPointIndex--;
-
                         textValue[keyCount] = (char)key;
                         textValue[++keyCount] = '\0';
                         valueHasChanged = true;
@@ -143,7 +138,6 @@ int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, int 
 
             if (IsKeyPressed(KEY_ENTER) || (!CheckCollisionPointRec(mousePoint, bounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)))
             {
-                guiFloatingPointIndex = 0;
                 result = 1;
             }
         }
@@ -169,7 +163,7 @@ int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, int 
     if (state == STATE_PRESSED)
     {
         baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_PRESSED));
-        textValue[(int)strlen(textValue) - guiFloatingPointIndex] = '\0';
+        textValue[(int)strlen(textValue)] = '\0';
     }
     else if (state == STATE_DISABLED) baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_DISABLED));
 
@@ -223,7 +217,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 
         bool valueHasChanged = false;
 
-        int keyCount = (int)strlen(textValue) - guiFloatingPointIndex;
+        int keyCount = (int)strlen(textValue);
 
         if (editMode)
         {
@@ -237,8 +231,6 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
                     int key = GetCharPressed();
                     if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || key == 46)
                     {
-                        if (guiFloatingPointIndex && guiFloatingPointIndex != 4) guiFloatingPointIndex--;
-
                         textValue[keyCount] = (char)key;
                         textValue[++keyCount] = '\0';
                         valueHasChanged = true;
@@ -251,8 +243,6 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
             {
                 if (IsKeyPressed(KEY_BACKSPACE))
                 {
-                    if (guiFloatingPointIndex < 4) guiFloatingPointIndex++;
-
                     keyCount--;
                     textValue[keyCount] = '\0';
                     valueHasChanged = true;
@@ -266,7 +256,6 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 
             if (IsKeyPressed(KEY_ENTER) || (!CheckCollisionPointRec(mousePoint, bounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)))
             {
-                guiFloatingPointIndex = 0;
                 result = 1;
             }
         }
@@ -289,7 +278,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     if (state == STATE_PRESSED)
     {
         baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_PRESSED));
-        textValue[(int)strlen(textValue) - guiFloatingPointIndex] = '\0';
+        textValue[(int)strlen(textValue)] = '\0';
     }
     else if (state == STATE_DISABLED) baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_DISABLED));
 
@@ -312,12 +301,13 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-void *draw_gui(void *args){
+void gui_setup(void *args){
+    
 	InitWindow(250, 400, "Client");
 
 	// General variables
 	SetTargetFPS(60);
-
+    
 	bool variables[17];
     bool name_variables[10];
     bool ip_vars[4];
@@ -334,7 +324,7 @@ void *draw_gui(void *args){
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
-	while (!program_terminate)
+	while (1)
 	{
 		// Draw 
 		//----------------------------------------------------------------------------------
@@ -366,7 +356,7 @@ void *draw_gui(void *args){
 		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, names[i], name_variables[i])) name_variables[i] = !name_variables[i];
         }
 
-		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect") && connect != 1)
+		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect"))
 		{
             sprintf(arguments.ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
             size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
@@ -386,16 +376,20 @@ void *draw_gui(void *args){
                 std_output = 1;
             else
                 std_output = 0;
-			connect = 1;
             break;
 		}
 		
 		EndDrawing();
         //----------------------------------------------------------------------------------
         if(WindowShouldClose()){
-            program_terminate = 1;
+            break;
         }
 	}
-
+    
 	CloseWindow();
+    
+}
+
+void *gui_draw(void *args){
+    while(program_terminate != 1){}
 }

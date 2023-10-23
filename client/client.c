@@ -42,7 +42,6 @@ char *file_queue[2];
 int switch_buffer = 0;
 
 int program_terminate = 0;
-extern int connect;
 
 arg_struct arguments;
 
@@ -205,16 +204,7 @@ int main(int argc , char *argv[])
     }
     
 
-    //pthread_create(&gui, NULL, draw_gui, NULL);
-
-    //draw_gui();
-
-    //while(!connect){}
-
-    //sleep(1);
-
-    printf("%d %d %d %d %d %s %d\n", num_of_fields, size_of_field, queue_size, number_of_bpm, arguments.port, arguments.ip, file_entries);
-
+    gui_setup();
     save_params();
 
     setup_queue_memory();
@@ -223,9 +213,9 @@ int main(int argc , char *argv[])
     sem_init(&semaphore_output, 0, 1);
     sem_init(&semaphore_file, 0, 1);
 
+    pthread_create(&gui, NULL, gui_draw, NULL);
 
     pthread_create(&receiver, NULL, read_package, (void*)&arguments);
-    printf("here\n");
     if(std_output)
         pthread_create(&output, NULL, output_package, NULL);
     if(file_write)
@@ -242,7 +232,7 @@ int main(int argc , char *argv[])
         pthread_join(output, NULL);
     if(file_write)
         pthread_join(writer, NULL);
-    //pthread_join(gui, NULL);
+    pthread_join(gui, NULL);
 	
     free_queue_memory();
     free_file_memory();
