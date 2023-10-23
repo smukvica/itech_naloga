@@ -10,6 +10,7 @@
 #include "c_receiver.h"
 #include "c_output.h"
 #include "c_file.h"
+#include "c_gui.h"
 
 int queue_size = 100;
 int number_of_packets = 1000;
@@ -18,7 +19,7 @@ int file_entries = 100;
 int num_of_fields = 3;
 int size_of_field = 4;
 
-char names[10][32];
+char names[10][32] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
 sem_t semaphore_output;
 sem_t semaphore_file;
@@ -32,11 +33,17 @@ int q_overflow = 0;
 pthread_t receiver;
 pthread_t output;
 pthread_t writer;
+pthread_t gui;
+
+int file_write = 1;
+int std_output = 1;
 
 char *file_queue[2];
 int switch_buffer = 0;
 
 int program_terminate = 0;
+
+arg_struct arguments;
 
 void setup_queue_memory(){
     queue = malloc(sizeof(package) * queue_size);
@@ -85,10 +92,6 @@ void read_file(const char *file){
     free_queue_memory();
 }
 
-void sigint_handler(){
-    program_terminate = 1;
-}
-
 void print_argument(const char *arg, const char *explain, const char *usage){
     printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
 }
@@ -134,25 +137,23 @@ void print_help(){
 
 int main(int argc , char *argv[])
 {
-    signal(SIGINT, sigint_handler);
 
     if(strcmp(argv[1], "read_file") == 0){
         read_file(argv[2]);
         return 0;
     }
-
-    arg_struct arguments;
     strcpy(arguments.ip, "127.0.0.1");
     arguments.port = 8888;
 
-    int file_write = 1;
-    int std_output = 1;
+    file_write = 1;
+    std_output = 1;
 
     int c = 1;
     if(strcmp(argv[1], "help") == 0){
         print_help();
         return 0;
     }
+    
     while(c < argc - num_of_fields){
         if(strcmp(argv[c], "number_of_fields") == 0){
             num_of_fields = atoi(argv[c+1]);
@@ -201,7 +202,9 @@ int main(int argc , char *argv[])
     for(int k = 0; k < num_of_fields; k++){
         strcpy(names[k], argv[c+k]);
     }
+    
 
+    gui_setup();
     save_params();
 
     setup_queue_memory();
@@ -209,6 +212,8 @@ int main(int argc , char *argv[])
 
     sem_init(&semaphore_output, 0, 1);
     sem_init(&semaphore_file, 0, 1);
+
+    pthread_create(&gui, NULL, gui_draw, NULL);
 
     pthread_create(&receiver, NULL, read_package, (void*)&arguments);
     if(std_output)
@@ -227,6 +232,7 @@ int main(int argc , char *argv[])
         pthread_join(output, NULL);
     if(file_write)
         pthread_join(writer, NULL);
+    pthread_join(gui, NULL);
 	
     free_queue_memory();
     free_file_memory();
