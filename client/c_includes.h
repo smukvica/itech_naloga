@@ -8,6 +8,6 @@ typedef struct package{
 }package;
 
 typedef struct arg_struct{
-    unsigned int port;
+    int port;
     char ip[15];
 }arg_struct;

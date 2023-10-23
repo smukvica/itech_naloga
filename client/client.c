@@ -10,6 +10,7 @@
 #include "c_receiver.h"
 #include "c_output.h"
 #include "c_file.h"
+#include "c_gui.h"
 
 int queue_size = 100;
 int number_of_packets = 1000;
@@ -18,7 +19,7 @@ int file_entries = 100;
 int num_of_fields = 3;
 int size_of_field = 4;
 
-char **names;
+char names[10][32] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
 sem_t semaphore_output;
 sem_t semaphore_file;
@@ -32,11 +33,18 @@ int q_overflow = 0;
 pthread_t receiver;
 pthread_t output;
 pthread_t writer;
+pthread_t gui;
+
+int file_write = 1;
+int std_output = 1;
 
 char *file_queue[2];
 int switch_buffer = 0;
 
 int program_terminate = 0;
+extern int connect;
+
+arg_struct arguments;
 
 void setup_queue_memory(){
     queue = malloc(sizeof(package) * queue_size);
@@ -50,20 +58,6 @@ void free_queue_memory(){
         free(queue[i].data);
     }
     free(queue);
-}
-
-void setup_names_memory(int f){
-    names = malloc(sizeof(char*) * f);
-    for(int i = 0; i < f; i++){
-        names[i] = malloc(sizeof(char) * 10);
-    }
-}
-
-void free_names_memory(){
-    for(int i = 0; i < num_of_fields; i++){
-        free(names[i]);
-    }
-    free(names);
 }
 
 void setup_file_memory(){
@@ -97,11 +91,6 @@ void read_file(const char *file){
     output_from_file(file_entries);
 
     free_queue_memory();
-    free_names_memory();
-}
-
-void sigint_handler(){
-    program_terminate = 1;
 }
 
 void print_argument(const char *arg, const char *explain, const char *usage){
@@ -149,25 +138,23 @@ void print_help(){
 
 int main(int argc , char *argv[])
 {
-    signal(SIGINT, sigint_handler);
 
     if(strcmp(argv[1], "read_file") == 0){
         read_file(argv[2]);
         return 0;
     }
-
-    arg_struct arguments;
     strcpy(arguments.ip, "127.0.0.1");
     arguments.port = 8888;
 
-    int file_write = 1;
-    int std_output = 1;
+    file_write = 1;
+    std_output = 1;
 
     int c = 1;
     if(strcmp(argv[1], "help") == 0){
         print_help();
         return 0;
     }
+    
     while(c < argc - num_of_fields){
         if(strcmp(argv[c], "number_of_fields") == 0){
             num_of_fields = atoi(argv[c+1]);
@@ -175,7 +162,6 @@ int main(int argc , char *argv[])
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
-            setup_names_memory(num_of_fields);
         }
         if(strcmp(argv[c], "size_of_field") == 0){
             size_of_field = atoi(argv[c+1]);
@@ -217,6 +203,17 @@ int main(int argc , char *argv[])
     for(int k = 0; k < num_of_fields; k++){
         strcpy(names[k], argv[c+k]);
     }
+    
+
+    //pthread_create(&gui, NULL, draw_gui, NULL);
+
+    //draw_gui();
+
+    //while(!connect){}
+
+    //sleep(1);
+
+    printf("%d %d %d %d %d %s %d\n", num_of_fields, size_of_field, queue_size, number_of_bpm, arguments.port, arguments.ip, file_entries);
 
     save_params();
 
@@ -226,7 +223,9 @@ int main(int argc , char *argv[])
     sem_init(&semaphore_output, 0, 1);
     sem_init(&semaphore_file, 0, 1);
 
+
     pthread_create(&receiver, NULL, read_package, (void*)&arguments);
+    printf("here\n");
     if(std_output)
         pthread_create(&output, NULL, output_package, NULL);
     if(file_write)
@@ -243,9 +242,9 @@ int main(int argc , char *argv[])
         pthread_join(output, NULL);
     if(file_write)
         pthread_join(writer, NULL);
+    //pthread_join(gui, NULL);
 	
     free_queue_memory();
-    free_names_memory();
     free_file_memory();
 
     sem_destroy(&semaphore_output);

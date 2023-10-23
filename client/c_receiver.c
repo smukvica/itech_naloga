@@ -42,7 +42,7 @@ void *read_package(void *arguments){
 	}
 
     arg_struct *args = arguments;
-		
+
 	server.sin_addr.s_addr = inet_addr(args->ip);
 	server.sin_family = AF_INET;
 	server.sin_port = htons(args->port);
@@ -54,7 +54,7 @@ void *read_package(void *arguments){
 		exit(1);
 	}
 	
-	puts("Connected\n");
+	//puts("Connected\n");
 
     char data[num_of_fields * size_of_field];
     unsigned int status;
