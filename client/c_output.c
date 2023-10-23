@@ -32,7 +32,7 @@ unsigned int packet_errors = 0;
 int number_of_consecutive_errors = 0;
 int previously_error = 0;
 
-extern char **names;
+extern char names[10][32];
 
 extern int program_terminate;
 

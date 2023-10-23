@@ -18,7 +18,7 @@ int file_entries = 100;
 int num_of_fields = 3;
 int size_of_field = 4;
 
-char **names;
+char names[10][32];
 
 sem_t semaphore_output;
 sem_t semaphore_file;
@@ -52,20 +52,6 @@ void free_queue_memory(){
     free(queue);
 }
 
-void setup_names_memory(int f){
-    names = malloc(sizeof(char*) * f);
-    for(int i = 0; i < f; i++){
-        names[i] = malloc(sizeof(char) * 10);
-    }
-}
-
-void free_names_memory(){
-    for(int i = 0; i < num_of_fields; i++){
-        free(names[i]);
-    }
-    free(names);
-}
-
 void setup_file_memory(){
     file_queue[0] = malloc((sizeof(char) * size_of_field * num_of_fields + 4) * file_entries);
 
@@ -97,7 +83,6 @@ void read_file(const char *file){
     output_from_file(file_entries);
 
     free_queue_memory();
-    free_names_memory();
 }
 
 void sigint_handler(){
@@ -175,7 +160,6 @@ int main(int argc , char *argv[])
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
-            setup_names_memory(num_of_fields);
         }
         if(strcmp(argv[c], "size_of_field") == 0){
             size_of_field = atoi(argv[c+1]);
@@ -245,7 +229,6 @@ int main(int argc , char *argv[])
         pthread_join(writer, NULL);
 	
     free_queue_memory();
-    free_names_memory();
     free_file_memory();
 
     sem_destroy(&semaphore_output);

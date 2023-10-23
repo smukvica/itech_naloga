@@ -17,7 +17,7 @@ extern int switch_buffer;
 int local_switch_buffer = 0;
 int file_buffer_f = 0;
 
-extern char **names;
+extern char names[10][32];
 
 extern int program_terminate;
 
@@ -51,11 +51,6 @@ void load_params(const char *filename){
     read = getline(&line, &len, f);
     sscanf(line, "file entries: %d", &file_entries);
     read = getline(&line, &len, f);
-
-    names = malloc(sizeof(char*) * num_of_fields);
-    for(int i = 0; i < num_of_fields; i++){
-        names[i] = malloc(sizeof(char) * 10);
-    }
 
     char *token = strtok(line, " ");
     for(int k = 1; k <= num_of_fields + 1; k++){
