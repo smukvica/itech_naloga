@@ -22,6 +22,7 @@ int file_q_index_receiver = 0;
 
 void write_to_queue(char *data, int id, parameters params){
     switch(id){
+        case FILEW:
         case RECEIVER:
             memcpy(output_queue + (output_q_index_receiver % params.queue_size) * (params.num_of_fields * params.size_of_field + 4), 
                    data, params.num_of_fields * params.size_of_field + 4);
@@ -45,8 +46,6 @@ void write_to_queue(char *data, int id, parameters params){
             sem_post(&semaphore_2);
             break;
         case OUTPUT:
-            break;
-        case FILEW:
             break;
         case GUI:
             break;
@@ -83,9 +82,8 @@ int get_from_queue(char *data, int id, parameters params){ // return 1 if not co
             if(file_q_switch == 1) can_write = 1;
             sem_post(&semaphore_2);
             if(can_write){
-                //memcpy(data, file_queue2[file_q_select_buffer_f],
-                //       (params.num_of_fields * params.size_of_field + 4));
-                memcpy(data, "hehe", 5);
+                memcpy(data, file_queue2[file_q_select_buffer_f],
+                       (params.num_of_fields * params.size_of_field + 4));
                 file_q_select_buffer_f = (file_q_select_buffer_f + 1) % 2;
                 file_q_switch = 0;
                 return 0;
