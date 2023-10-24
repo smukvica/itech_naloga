@@ -12,29 +12,12 @@
 #include "c_includes.h"
 #include "c_queue.h"
 
-extern int queue_size;
-extern sem_t semaphore_output;
-extern sem_t semaphore_file;
-extern package *queue;
-
-extern int number_of_packets;
-extern int num_of_fields;
-extern int size_of_field;
-
-extern int q_overflow;
-extern int current_q_w;
-
-extern char *file_queue[2];
-extern int file_entries;
-extern int switch_buffer_file;
-int file_buffer_r = 0;
-
 extern int program_terminate;
 
 void *read_package(void *arguments){
     int socket_desc;
 	struct sockaddr_in server;
-	char server_reply[num_of_fields * size_of_field + 4];
+	
 
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_desc == -1)
@@ -44,6 +27,8 @@ void *read_package(void *arguments){
 	}
 
     parameters *args = arguments;
+
+    char server_reply[args->num_of_fields * args->size_of_field + 4];
 
 	server.sin_addr.s_addr = inet_addr(args->ip);
 	server.sin_family = AF_INET;
@@ -55,38 +40,30 @@ void *read_package(void *arguments){
 		perror("connect error");
 		exit(1);
 	}
-	
-	//puts("Connected\n");
-
-    char data[args->num_of_fields * args->size_of_field];
-    unsigned int status;
-    int i = 0;
+    
+    int received_packages = 0;
 
     double t = omp_get_wtime();
 
     while(1){
-        if( recv(socket_desc, &server_reply, num_of_fields * size_of_field + 4, 0) < 0)
-        {
+        int ret = recv(socket_desc, &server_reply, args->num_of_fields * args->size_of_field + 4, 0);
+        if( ret < 0){
             puts("recv failed");
+            return 0;
         }
-        
+        if (ret == 0)
+            program_terminate = 1;
+
         write_to_queue(server_reply, RECEIVER, *args);
 
-        memcpy(file_queue[file_buffer_r] + (i % file_entries) * (num_of_fields * size_of_field + 4), server_reply, num_of_fields * size_of_field + 4);
-        
-        sem_wait(&semaphore_file);
-        if(current_q_w % file_entries == 0){
-            switch_buffer_file = 1;
-            file_buffer_r = (file_buffer_r + 1) % 2;
-        }
-        sem_post(&semaphore_file);
-        i++;
         if(program_terminate == 1){
             t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
             sleep(1);
-            printf("total packages:\t\t%d\ntotal time running:\t%f\npackages per second:\t%f\n", i, t, (double)i / t);
+            printf("total packages:\t\t%d\ntotal time running:\t%f\npackages per second:\t%f\n", received_packages, t, 
+                                                                                                 (double)received_packages / t);
             return 0;
         }
+        received_packages++;
     }
 }

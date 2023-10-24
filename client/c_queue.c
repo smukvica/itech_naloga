@@ -2,7 +2,6 @@
 #include <semaphore.h>
 #include <limits.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "c_queue.h"
 
@@ -15,8 +14,13 @@ int output_q_index_receiver = 0;
 int output_q_index_output = 0;
 int output_q_overflow = 0;
 
+int file_q_select_buffer_r = 0;
+int file_q_select_buffer_f = 0;
+int file_q_switch = 0;
+
+int file_q_index_receiver = 0;
+
 void write_to_queue(char *data, int id, parameters params){
-    printf("%d %d\n", params.num_of_fields, params.size_of_field);
     switch(id){
         case RECEIVER:
             memcpy(output_queue + (output_q_index_receiver % params.queue_size) * (params.num_of_fields * params.size_of_field + 4), 
@@ -28,10 +32,21 @@ void write_to_queue(char *data, int id, parameters params){
                 output_q_overflow = 1;
             }
             sem_post(&semaphore_1);
+
+            memcpy(file_queue2[file_q_select_buffer_r] + (file_q_index_receiver % params.file_entries) * (params.num_of_fields * params.size_of_field + 4),
+                   data, params.num_of_fields * params.size_of_field + 4);
+            file_q_index_receiver++;
+            sem_wait(&semaphore_2);
+            if(file_q_index_receiver % params.file_entries == 0){
+                file_q_switch = 1;
+                file_q_select_buffer_r = (file_q_select_buffer_r + 1) % 2;
+                file_q_index_receiver = 0;
+            }
+            sem_post(&semaphore_2);
             break;
         case OUTPUT:
             break;
-        case FILE:
+        case FILEW:
             break;
         case GUI:
             break;
@@ -50,7 +65,6 @@ int get_from_queue(char *data, int id, parameters params){ // return 1 if not co
             if(output_q_index_output < output_q_index_receiver || output_q_overflow == 1) can_write = 1;
             sem_post(&semaphore_1);
             if(can_write){
-                printf("here\n");
                 memcpy(data, output_queue + (output_q_index_output % params.queue_size) * (params.num_of_fields * params.size_of_field + 4),
                        params.num_of_fields * params.size_of_field + 4);
                 output_q_index_output++;
@@ -64,7 +78,21 @@ int get_from_queue(char *data, int id, parameters params){ // return 1 if not co
                 return 1;
             }
             break;
-        case FILE:
+        case FILEW:
+            sem_wait(&semaphore_2);
+            if(file_q_switch == 1) can_write = 1;
+            sem_post(&semaphore_2);
+            if(can_write){
+                //memcpy(data, file_queue2[file_q_select_buffer_f],
+                //       (params.num_of_fields * params.size_of_field + 4));
+                memcpy(data, "hehe", 5);
+                file_q_select_buffer_f = (file_q_select_buffer_f + 1) % 2;
+                file_q_switch = 0;
+                return 0;
+            }
+            else{
+                return 1;
+            }
             break;
         case GUI:
             break;

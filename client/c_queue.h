@@ -4,7 +4,7 @@
 
 #define RECEIVER 0
 #define OUTPUT 1
-#define FILE 2
+#define FILEW 2
 #define GUI 3
 
 void write_to_queue(char *data, int id, parameters params);

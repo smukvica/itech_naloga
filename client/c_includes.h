@@ -1,13 +1,5 @@
 #pragma once
 
-typedef struct package{
-    char *data;
-    unsigned int status;
-}package;
-
-typedef struct arg_struct{
-}arg_struct;
-
 typedef struct parameters{
     int queue_size;
     int number_of_packets;

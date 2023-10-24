@@ -1,6 +1,8 @@
 #pragma once
+#include "c_includes.h"
 
-void save_params();
-void load_params(const char *filename);
+void save_params(parameters params);
+void load_params(const char *filename, parameters *params);
 
-void *file_writer(void *arguments);
+void *file_writer(void *args);
+void file_reader(parameters params);

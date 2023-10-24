@@ -13,63 +13,12 @@
 #include "c_gui.h"
 #include "c_queue.h"
 
-int queue_size = 100;
-int number_of_packets = 1000;
-int number_of_bpm = 1;
-int file_entries = 100;
-int num_of_fields = 3;
-int size_of_field = 4;
-
-char names[10][32] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
-
-sem_t semaphore_output;
-sem_t semaphore_file;
-
-package *queue;
-int current_q_w = 0;
-int current_q_r = 0;
-int current_limit = 0;
-int q_overflow = 0;
-
 pthread_t receiver;
 pthread_t output;
 pthread_t writer;
 pthread_t gui;
 
-int file_write = 1;
-int std_output = 1;
-
-char *file_queue[2];
-int switch_buffer_file = 0;
-
 int program_terminate = 0;
-
-arg_struct arguments;
-
-void setup_queue_memory(){
-    queue = malloc(sizeof(package) * queue_size);
-    for(int i = 0; i < queue_size; i++){
-        queue[i].data = malloc(sizeof(char) * size_of_field * num_of_fields);
-    }
-}
-
-void free_queue_memory(){
-    for(int i = 0; i < queue_size; i++){
-        free(queue[i].data);
-    }
-    free(queue);
-}
-
-void setup_file_memory(){
-    file_queue[0] = malloc((sizeof(char) * size_of_field * num_of_fields + 4) * file_entries);
-
-    file_queue[1] = malloc((sizeof(char) * size_of_field * num_of_fields + 4) * file_entries);
-}
-
-void free_file_memory(){
-    free(file_queue[0]);
-    free(file_queue[1]);
-}
 
 void read_file(const char *file){
     /*
@@ -213,26 +162,20 @@ int main(int argc , char *argv[])
     }
     
 
-    //int ret = gui_setup(params);
-    //if(ret)
-    //    return 1;
-    save_params();
+    int ret = gui_setup(&params);
+    if(ret)
+        return 1;
+    save_params(params);
 
     setup_queue(params);
 
-    setup_queue_memory();
-    setup_file_memory();
-
-    sem_init(&semaphore_output, 0, 1);
-    sem_init(&semaphore_file, 0, 1);
-
-    //pthread_create(&gui, NULL, gui_draw, NULL);
+    pthread_create(&gui, NULL, gui_draw, NULL);
 
     pthread_create(&receiver, NULL, read_package, (void*)&params);
-    if(std_output)
+    if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
-    if(file_write)
-        pthread_create(&writer, NULL, file_writer, NULL);
+    if(params.file_write)
+        pthread_create(&writer, NULL, file_writer, (void*)&params);
     
 
     while(program_terminate != 1){
@@ -241,24 +184,16 @@ int main(int argc , char *argv[])
 
     
     pthread_join(receiver, NULL);
-    if(std_output)
+    if(params.std_output)
         pthread_join(output, NULL);
-    if(file_write)
+    if(params.file_write)
         pthread_join(writer, NULL);
-    //pthread_join(gui, NULL);
-	
-    free_queue_memory();
-    free_file_memory();
-
-    sem_destroy(&semaphore_output);
-    sem_destroy(&semaphore_file);
+    pthread_join(gui, NULL);
 
     free_queue();
 
 	return 0;
 }
-
-
 
 /*
 

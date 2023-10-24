@@ -281,7 +281,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-int gui_setup(parameters params){
+int gui_setup(parameters *params){
     
 	InitWindow(250, 400, "Client");
 
@@ -293,14 +293,14 @@ int gui_setup(parameters params){
     bool ip_vars[4];
     int ip[4];
 
-    dropdown_num_bpm_value = get_index_of_value(params.number_of_bpm, dropdown_num_bpm_options);
-    dropdown_num_fields_value = params.num_of_fields - 1;
-    dropdown_size_field_value = get_index_of_value(params.size_of_field, dropdown_size_fields_options);
+    dropdown_num_bpm_value = get_index_of_value(params->number_of_bpm, dropdown_num_bpm_options);
+    dropdown_num_fields_value = params->num_of_fields - 1;
+    dropdown_size_field_value = get_index_of_value(params->size_of_field, dropdown_size_fields_options);
 
-    queue_size_value = params.queue_size;
-    file_entries_value = params.file_entries;
-    port_value = params.port;
-    sscanf(params.ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
+    queue_size_value = params->queue_size;
+    file_entries_value = params->file_entries;
+    port_value = params->port;
+    sscanf(params->ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
@@ -333,29 +333,29 @@ int gui_setup(parameters params){
 
         DrawText("Field names", 123, 10, 10, DARKGRAY);
         for(int i = 0; i < dropdown_num_fields_value + 1; i++){
-		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, params.names[i], name_variables[i])) name_variables[i] = !name_variables[i];
+		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, params->names[i], name_variables[i])) name_variables[i] = !name_variables[i];
         }
 
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect"))
 		{
-            sprintf(params.ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-            params.size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
-            params.number_of_bpm = (int)(dropdown_num_bpm_options[dropdown_num_bpm_value*2] - '0');
-            params.num_of_fields = dropdown_num_fields_value + 1;
+            sprintf(params->ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+            params->size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
+            params->number_of_bpm = (int)(dropdown_num_bpm_options[dropdown_num_bpm_value*2] - '0');
+            params->num_of_fields = dropdown_num_fields_value + 1;
 
-            params.port = port_value;
-            params.file_entries = file_entries_value;
-            params.queue_size = queue_size_value;
+            params->port = port_value;
+            params->file_entries = file_entries_value;
+            params->queue_size = queue_size_value;
 
             if(variables[7] == true)
-                params.file_write = 1;
+                params->file_write = 1;
             else
-                params.file_write = 0;
+                params->file_write = 0;
 
             if(variables[8] == true)
-                params.std_output = 1;
+                params->std_output = 1;
             else
-                params.std_output = 0;
+                params->std_output = 0;
             CloseWindow();
             return 0;
 		}
