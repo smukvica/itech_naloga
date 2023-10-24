@@ -110,7 +110,7 @@ void *output_package(void *args){
     while(1){
         char data[params.num_of_fields * params.size_of_field + 4];
 
-        int ret = get_from_queue(&data[0], OUTPUT, params);
+        int ret = get_from_queue(&data[0], 1, OUTPUT, params);
         if(ret != 1){
             unsigned int out = 0;
             int i;

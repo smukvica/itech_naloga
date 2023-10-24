@@ -51,10 +51,10 @@ void *read_package(void *arguments){
             puts("recv failed");
             return 0;
         }
-        if (ret == 0)
-            program_terminate = 1;
-
-        write_to_queue(server_reply, RECEIVER, *args);
+        if (ret != 0){
+            received_packages++;
+            write_to_queue(server_reply, 1, RECEIVER, *args);
+        }
 
         if(program_terminate == 1){
             t = (omp_get_wtime() - t);
@@ -64,6 +64,5 @@ void *read_package(void *arguments){
                                                                                                  (double)received_packages / t);
             return 0;
         }
-        received_packages++;
     }
 }

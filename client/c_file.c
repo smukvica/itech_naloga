@@ -56,10 +56,10 @@ void *file_writer(void *args){
     int file_num = 0;
     char data[(params.num_of_fields * params.size_of_field + 4) * params.file_entries];
     while(1){
-        int ret = get_from_queue(&data[0], FILEW, params);
+        int ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
         
         while(ret){
-            ret = get_from_queue(&data[0], FILEW, params);
+            ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
             if(program_terminate == 1){
                 printf("terminate writer\n");
                 return 0;
