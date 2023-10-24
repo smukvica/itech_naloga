@@ -1,36 +1,17 @@
-#include "c_gui.h"
-#include "c_includes.h"
-/*******************************************************************************************
-*
-*   raygui - basic calculator app with custom input box for float values
-*
-*   DEPENDENCIES:
-*       raylib 4.5  - Windowing/input management and drawing.
-*       raygui 3.5  - Immediate-mode GUI controls.
-*
-*   COMPILATION (Windows - MinGW):
-*       gcc -o $(NAME_PART).exe $(FILE_NAME) -I../../src -lraylib -lopengl32 -lgdi32 -std=c99
-*
-**********************************************************************************************/
-
+#include <stdio.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <raylib.h>
+
+#include "c_gui.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
 
 extern int program_terminate;
-extern int num_of_fields;
-extern int size_of_field;
-extern int queue_size;
-extern int number_of_bpm;
-extern int number_of_packets;
-extern int file_entries;
-extern int file_write;
-extern int std_output;
-extern arg_struct arguments;
-
-extern char names[10][32];
 
 const char dropdown_num_fields_options[21] = "1;2;3;4;5;6;7;8;9;10\0";
 int dropdown_num_fields_value = 0;
@@ -41,7 +22,6 @@ int dropdown_num_bpm_value = 0;
 int queue_size_value = 1000;
 int port_value = 8888;
 int file_entries_value = 100;
-
 
 int get_index_of_value(int value, const char *text){
     int index = 0;
@@ -301,7 +281,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-int gui_setup(){
+int gui_setup(parameters params){
     
 	InitWindow(250, 400, "Client");
 
@@ -313,14 +293,14 @@ int gui_setup(){
     bool ip_vars[4];
     int ip[4];
 
-    dropdown_num_bpm_value = get_index_of_value(number_of_bpm, dropdown_num_bpm_options);
-    dropdown_num_fields_value = num_of_fields - 1;
-    dropdown_size_field_value = get_index_of_value(size_of_field, dropdown_size_fields_options);
+    dropdown_num_bpm_value = get_index_of_value(params.number_of_bpm, dropdown_num_bpm_options);
+    dropdown_num_fields_value = params.num_of_fields - 1;
+    dropdown_size_field_value = get_index_of_value(params.size_of_field, dropdown_size_fields_options);
 
-    queue_size_value = queue_size;
-    file_entries_value = file_entries;
-    port_value = arguments.port;
-    sscanf(arguments.ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
+    queue_size_value = params.queue_size;
+    file_entries_value = params.file_entries;
+    port_value = params.port;
+    sscanf(params.ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
@@ -353,29 +333,29 @@ int gui_setup(){
 
         DrawText("Field names", 123, 10, 10, DARKGRAY);
         for(int i = 0; i < dropdown_num_fields_value + 1; i++){
-		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, names[i], name_variables[i])) name_variables[i] = !name_variables[i];
+		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, params.names[i], name_variables[i])) name_variables[i] = !name_variables[i];
         }
 
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect"))
 		{
-            sprintf(arguments.ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-            size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
-            number_of_bpm = (int)(dropdown_num_bpm_options[dropdown_num_bpm_value*2] - '0');
-            num_of_fields = dropdown_num_fields_value + 1;
+            sprintf(params.ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+            params.size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
+            params.number_of_bpm = (int)(dropdown_num_bpm_options[dropdown_num_bpm_value*2] - '0');
+            params.num_of_fields = dropdown_num_fields_value + 1;
 
-            arguments.port = port_value;
-            file_entries = file_entries_value;
-            queue_size = queue_size_value;
+            params.port = port_value;
+            params.file_entries = file_entries_value;
+            params.queue_size = queue_size_value;
 
             if(variables[7] == true)
-                file_write = 1;
+                params.file_write = 1;
             else
-                file_write = 0;
+                params.file_write = 0;
 
             if(variables[8] == true)
-                std_output = 1;
+                params.std_output = 1;
             else
-                std_output = 0;
+                params.std_output = 0;
             CloseWindow();
             return 0;
 		}
@@ -389,5 +369,19 @@ int gui_setup(){
 }
 
 void *gui_draw(void *args){
-    while(program_terminate != 1){}
+    InitWindow(500, 400, "Client");
+
+    SetTargetFPS(60);
+    int observed_variable = 0;
+    while(program_terminate != 1){
+
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        EndDrawing();
+
+        if(WindowShouldClose())
+            program_terminate = 1;
+    }
+    CloseWindow();
 }

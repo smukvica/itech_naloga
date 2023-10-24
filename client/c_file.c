@@ -13,7 +13,7 @@ extern int size_of_field;
 extern int file_entries;
 
 extern sem_t semaphore_file;
-extern int switch_buffer;
+extern int switch_buffer_file;
 int local_switch_buffer = 0;
 int file_buffer_f = 0;
 
@@ -78,7 +78,7 @@ void *file_writer(void *arguments){
                 return 0;
             }
             sem_wait(&semaphore_file);
-            local_switch_buffer = switch_buffer;
+            local_switch_buffer = switch_buffer_file;
             sem_post(&semaphore_file);
             sleep(0);
         }
@@ -87,7 +87,7 @@ void *file_writer(void *arguments){
         file_buffer_f = (file_buffer_f + 1) % 2;
         local_switch_buffer = 0;
         sem_wait(&semaphore_file);
-        switch_buffer = 0;
+        switch_buffer_file = 0;
         sem_post(&semaphore_file);
         fclose(write);
         i += file_entries;

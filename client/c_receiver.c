@@ -6,9 +6,11 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <omp.h>
 
 #include "c_receiver.h"
 #include "c_includes.h"
+#include "c_queue.h"
 
 extern int queue_size;
 extern sem_t semaphore_output;
@@ -24,7 +26,7 @@ extern int current_q_w;
 
 extern char *file_queue[2];
 extern int file_entries;
-extern int switch_buffer;
+extern int switch_buffer_file;
 int file_buffer_r = 0;
 
 extern int program_terminate;
@@ -41,7 +43,7 @@ void *read_package(void *arguments){
         exit(1);
 	}
 
-    arg_struct *args = arguments;
+    parameters *args = arguments;
 
 	server.sin_addr.s_addr = inet_addr(args->ip);
 	server.sin_family = AF_INET;
@@ -56,7 +58,7 @@ void *read_package(void *arguments){
 	
 	//puts("Connected\n");
 
-    char data[num_of_fields * size_of_field];
+    char data[args->num_of_fields * args->size_of_field];
     unsigned int status;
     int i = 0;
 
@@ -67,26 +69,14 @@ void *read_package(void *arguments){
         {
             puts("recv failed");
         }
-        memcpy(&data,server_reply,sizeof(char) * num_of_fields * size_of_field);
-        memcpy(&status,server_reply + num_of_fields * size_of_field,sizeof(int));
-
-        queue[current_q_w % queue_size].status = status;
-        memcpy(queue[current_q_w % queue_size].data, data, sizeof(char) * num_of_fields * size_of_field);
+        
+        write_to_queue(server_reply, RECEIVER, *args);
 
         memcpy(file_queue[file_buffer_r] + (i % file_entries) * (num_of_fields * size_of_field + 4), server_reply, num_of_fields * size_of_field + 4);
-
         
-        sem_wait(&semaphore_output);
-        current_q_w++;
-        if(current_q_w == INT_MAX){
-            current_q_w %= queue_size;
-            q_overflow = 1;
-        }
-        sem_post(&semaphore_output);
-
         sem_wait(&semaphore_file);
         if(current_q_w % file_entries == 0){
-            switch_buffer = 1;
+            switch_buffer_file = 1;
             file_buffer_r = (file_buffer_r + 1) % 2;
         }
         sem_post(&semaphore_file);

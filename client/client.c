@@ -11,6 +11,7 @@
 #include "c_output.h"
 #include "c_file.h"
 #include "c_gui.h"
+#include "c_queue.h"
 
 int queue_size = 100;
 int number_of_packets = 1000;
@@ -39,7 +40,7 @@ int file_write = 1;
 int std_output = 1;
 
 char *file_queue[2];
-int switch_buffer = 0;
+int switch_buffer_file = 0;
 
 int program_terminate = 0;
 
@@ -71,6 +72,7 @@ void free_file_memory(){
 }
 
 void read_file(const char *file){
+    /*
     FILE *write;
     write = fopen(file,"rb");  // r for read, b for binary
 
@@ -90,6 +92,7 @@ void read_file(const char *file){
     output_from_file(file_entries);
 
     free_queue_memory();
+    */
 }
 
 void print_argument(const char *arg, const char *explain, const char *usage){
@@ -137,16 +140,22 @@ void print_help(){
 
 int main(int argc , char *argv[])
 {
+    parameters params = {.queue_size = 100,
+                         .number_of_packets = 1000,
+                         .number_of_bpm = 1,
+                         .file_entries = 100,
+                         .num_of_fields = 3,
+                         .size_of_field = 4,
+                         .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
+                         .file_write = 1,
+                         .std_output = 1,
+                         .port = 8888,
+                         .ip = "127.0.0.1"};
 
     if(strcmp(argv[1], "read_file") == 0){
         read_file(argv[2]);
         return 0;
     }
-    strcpy(arguments.ip, "127.0.0.1");
-    arguments.port = 8888;
-
-    file_write = 1;
-    std_output = 1;
 
     int c = 1;
     if(strcmp(argv[1], "help") == 0){
@@ -154,60 +163,62 @@ int main(int argc , char *argv[])
         return 0;
     }
     
-    while(c < argc - num_of_fields){
+    while(c < argc - params.num_of_fields){
         if(strcmp(argv[c], "number_of_fields") == 0){
-            num_of_fields = atoi(argv[c+1]);
-            if(num_of_fields < 1 || num_of_fields > 10){
+            params.num_of_fields = atoi(argv[c+1]);
+            if(params.num_of_fields < 1 || params.num_of_fields > 10){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "size_of_field") == 0){
-            size_of_field = atoi(argv[c+1]);
-            if(size_of_field != 1 && size_of_field != 2 && size_of_field != 4){
+            params.size_of_field = atoi(argv[c+1]);
+            if(params.size_of_field != 1 && params.size_of_field != 2 && params.size_of_field != 4){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "queue_size") == 0){
-            queue_size = atoi(argv[c+1]);
+            params.queue_size = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "number_of_packets") == 0){
-            number_of_packets = atoi(argv[c+1]);
+            params.number_of_packets = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "number_of_bpm") == 0){
-            number_of_bpm = atoi(argv[c+1]);
-            if(number_of_bpm < 1 || number_of_bpm > 4){
+            params.number_of_bpm = atoi(argv[c+1]);
+            if(params.number_of_bpm < 1 || params.number_of_bpm > 4){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "file_entries") == 0){
-            file_entries = atoi(argv[c+1]);
+            params.file_entries = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "ip") == 0){
-            strcpy(arguments.ip, argv[c+1]);
+            strcpy(params.ip, argv[c+1]);
         }
         if(strcmp(argv[c], "port") == 0){
-            arguments.port = atoi(argv[c+1]);
+            params.port = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "writer") == 0){
-            file_write = atoi(argv[c+1]);
+            params.file_write = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "output") == 0){
-            std_output = atoi(argv[c+1]);
+            params.std_output = atoi(argv[c+1]);
         }
         c += 2;
     }
-    for(int k = 0; k < num_of_fields; k++){
-        strcpy(names[k], argv[c+k]);
+    for(int k = 0; k < params.num_of_fields; k++){
+        strcpy(params.names[k], argv[c+k]);
     }
     
 
-    int ret = gui_setup();
-    if(ret)
-        return 1;
+    //int ret = gui_setup(params);
+    //if(ret)
+    //    return 1;
     save_params();
+
+    setup_queue(params);
 
     setup_queue_memory();
     setup_file_memory();
@@ -215,11 +226,11 @@ int main(int argc , char *argv[])
     sem_init(&semaphore_output, 0, 1);
     sem_init(&semaphore_file, 0, 1);
 
-    pthread_create(&gui, NULL, gui_draw, NULL);
+    //pthread_create(&gui, NULL, gui_draw, NULL);
 
-    pthread_create(&receiver, NULL, read_package, (void*)&arguments);
+    pthread_create(&receiver, NULL, read_package, (void*)&params);
     if(std_output)
-        pthread_create(&output, NULL, output_package, NULL);
+        pthread_create(&output, NULL, output_package, (void*)&params);
     if(file_write)
         pthread_create(&writer, NULL, file_writer, NULL);
     
@@ -234,13 +245,15 @@ int main(int argc , char *argv[])
         pthread_join(output, NULL);
     if(file_write)
         pthread_join(writer, NULL);
-    pthread_join(gui, NULL);
+    //pthread_join(gui, NULL);
 	
     free_queue_memory();
     free_file_memory();
 
     sem_destroy(&semaphore_output);
     sem_destroy(&semaphore_file);
+
+    free_queue();
 
 	return 0;
 }
