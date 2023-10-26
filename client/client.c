@@ -64,10 +64,10 @@ void print_help(){
                    "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
                    "number_of_bpm 1");
     print_argument("queue_size",
-                   "size of queue accepting new packets",
+                   "size of queue accepting new packets. limited from 100.000 to 100.000.000",
                    "queue_size 100");
     print_argument("file_entries",
-                   "numbre of file entries in file when saving to file",
+                   "numbre of file entries in file when saving to file. limited from 100 to 10000",
                    "file_entries 100");
     print_argument("ip",
                    "set the ip of machine to connect to",
@@ -129,6 +129,10 @@ int main(int argc , char *argv[])
         }
         if(strcmp(argv[c], "queue_size") == 0){
             params.queue_size = atoi(argv[c+1]);
+            if(params.queue_size < 100000 || params.queue_size > 100000000){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
         }
         if(strcmp(argv[c], "number_of_packets") == 0){
             params.number_of_packets = atoi(argv[c+1]);
@@ -169,7 +173,7 @@ int main(int argc , char *argv[])
 
     setup_queue(params);
 
-    pthread_create(&gui, NULL, gui_draw, NULL);
+    pthread_create(&gui, NULL, gui_draw, (void*)&params);
 
     pthread_create(&receiver, NULL, read_package, (void*)&params);
     if(params.std_output)

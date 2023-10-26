@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
+#include <math.h>
 
 int packets_sent = 0;
 int number_of_packets = 100000;
@@ -18,11 +19,12 @@ int size_of_field = 4; // size in bytes
 
 int send_rate = 10000;
 
+unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
+
 void create_byte(int num, char *data){
-    for(int i = 1; i < size_of_field; i++){
-        data[i] = 0x0;
-    }
-    data[0] = num;
+    unsigned int out = (unsigned int)(sin(num * 3.141/180.0) * sin(num * 3.141/180.0) * limits_of_data[size_of_field-1]);
+
+    memcpy(data, &out, sizeof(char) * size_of_field);
 }
 
 void create_packet(char *packet){
@@ -39,7 +41,7 @@ void create_packet(char *packet){
     char data[size_of_field];
 
     for(int i = 0; i < num_of_fields; i++){
-        create_byte(i+1, data);
+        create_byte(packets_sent, data);
         memcpy(fields + i * size_of_field, &data, sizeof(char) * size_of_field);
     }
     memcpy(fields + num_of_fields * size_of_field, &status, sizeof(int));

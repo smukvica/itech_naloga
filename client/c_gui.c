@@ -4,12 +4,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <raylib.h>
+#include <math.h>
 
 #include "c_gui.h"
+#include "c_queue.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
-
 
 extern int program_terminate;
 
@@ -22,6 +23,67 @@ int dropdown_num_bpm_value = 0;
 int queue_size_value = 1000;
 int port_value = 8888;
 int file_entries_value = 100;
+
+int texture_size = 1000;
+
+
+Image image;
+Texture2D texture;
+unsigned char *texture_data;
+int texture_width;
+int texture_height;
+
+int number_of_samples = 0;
+int texture_offset = 0;
+
+unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
+
+double clamp(double d, double min, double max) {
+  const double t = d < min ? min : d;
+  return t > max ? max : t;
+}
+
+void create_texture(parameters params){
+    
+    texture_width = texture_size;
+    texture_height = params.num_of_fields * 100;
+    texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
+    image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
+    for(int i = 0; i < texture_width; i++){
+        for(int j = 0; j < texture_height;j++){
+            if(j%100 == 0 && j != 0)
+                texture_data[j * texture_width + i] = 0;
+            else
+                texture_data[j * texture_width + i] = 255;
+        }
+    }
+}
+
+void delete_texture(){
+    free(texture_data);
+}
+
+void create_image_from_data(char *data, parameters params){
+    if(number_of_samples >= texture_size){
+        number_of_samples = 0;
+        texture_offset = 0;
+        delete_texture();
+        create_texture(params);
+    }
+    for(int k = 0; k < 1; k++){
+        int f = k * (params.size_of_field * params.num_of_fields + 4);
+        unsigned int out;
+        for(int i = 0; i < params.num_of_fields; i++){
+            memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
+            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100); 
+            texture_data[texture_width * (height_offset + i * 100) + number_of_samples] = 0;
+        }
+        number_of_samples += 1;
+    }
+    UnloadTexture(texture);
+    texture = LoadTextureFromImage(image);
+}
+
 
 int get_index_of_value(int value, const char *text){
     int index = 0;
@@ -282,6 +344,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 }
 
 int gui_setup(parameters *params){
+    SetTraceLogLevel(LOG_ERROR);
     
 	InitWindow(250, 400, "Client");
 
@@ -325,9 +388,9 @@ int gui_setup(parameters *params){
         for(int i = 0; i < 4; i++){
             if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &ip[i], 0, 255, ip_vars[i])) ip_vars[i] = !ip_vars[i];
         }
-        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 1, 100000, variables[4])) variables[4] = !variables[4];
+        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 100, 1000, variables[4])) variables[4] = !variables[4];
         if (GuiDropdownBox((Rectangle){ 10, 145, 100, 20 }, dropdown_num_bpm_options, &dropdown_num_bpm_value, variables[3])) variables[3] = !variables[3];
-        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 1, 100000, variables[2])) variables[2] = !variables[2];
+        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 100000, 100000000, variables[2])) variables[2] = !variables[2];
         if (GuiDropdownBox((Rectangle){ 10, 65, 100, 20 }, dropdown_size_fields_options, &dropdown_size_field_value, variables[1])) variables[1] = !variables[1];
         if (GuiDropdownBox((Rectangle){ 10, 25, 100, 20}, dropdown_num_fields_options, &dropdown_num_fields_value, variables[0])) variables[0] = !variables[0];
 
@@ -369,19 +432,53 @@ int gui_setup(parameters *params){
 }
 
 void *gui_draw(void *args){
-    InitWindow(500, 400, "Client");
+    SetTraceLogLevel(LOG_ERROR);
+    parameters params = *(parameters*)args;
+    InitWindow(600, 100 * params.num_of_fields, "Client");
 
     SetTargetFPS(60);
     int observed_variable = 0;
+    char data[(params.size_of_field * params.num_of_fields + 4) * 1];
+    create_texture(params);
+    bool scroll = true;
     while(program_terminate != 1){
 
+        texture_offset -= GetMouseWheelMove() * 5;
+
+        if(texture_offset < 0)
+            texture_offset = 0;
+        if(texture_offset > texture_size - 500)
+            texture_offset = texture_size - 500;
+        
+        int ret = get_from_queue(&data[0], 1, GUI, params);
+        if(ret != 1){
+            create_image_from_data(&data[0], params);
+        }
+
+        if(number_of_samples > texture_offset + 500 && scroll == true)
+            texture_offset++;
+
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(WHITE);
+
+        
+
+        DrawTexture(texture, 100 - texture_offset, 0, WHITE);
+
+        DrawRectangle(0, 0, 100, params.num_of_fields * 100, RAYWHITE);
+
+        GuiCheckBox((Rectangle){ 10, 10, 20, 20 }, "auto scroll", &scroll);
+        for(int i = 0; i < params.num_of_fields; i++){
+            DrawText(params.names[i], 10, 50 + i * 100, 20, DARKGRAY);
+        }
+
+        
 
         EndDrawing();
 
         if(WindowShouldClose())
             program_terminate = 1;
     }
+    delete_texture();
     CloseWindow();
 }

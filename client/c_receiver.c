@@ -56,7 +56,7 @@ void *read_package(void *arguments){
             write_to_queue(server_reply, 1, RECEIVER, *args);
         }
 
-        if(program_terminate == 1){
+        if(program_terminate == 1 || ret == 0){
             t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
             sleep(1);

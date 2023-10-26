@@ -125,6 +125,8 @@ void *output_package(void *args){
             unsigned int bpm_id =     (out & (0xF << 2)) >> 2;
             
             check_package_order(params, bpm_id, package_id);
+        }else{
+            sleep(0);
         }
         if(program_terminate == 1){
             printf("terminate output\n");
