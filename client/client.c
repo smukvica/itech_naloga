@@ -20,30 +20,6 @@ pthread_t gui;
 
 int program_terminate = 0;
 
-void read_file(const char *file){
-    /*
-    FILE *write;
-    write = fopen(file,"rb");  // r for read, b for binary
-
-    load_params("params.txt");
-
-    setup_queue_memory();
-
-    char buffer[num_of_fields * size_of_field + 4];
-
-    for(int i = 0; i < 100; i++){
-        queue[i].data = malloc(num_of_fields * size_of_field);
-        fread(buffer, sizeof(char) * num_of_fields * size_of_field + 4, 1,write);
-        memcpy(queue[i].data, buffer, num_of_fields * size_of_field);
-        memcpy(&queue[i].status, buffer + num_of_fields * size_of_field, 4);
-    }
-
-    output_from_file(file_entries);
-
-    free_queue_memory();
-    */
-}
-
 void print_argument(const char *arg, const char *explain, const char *usage){
     printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
 }
@@ -102,7 +78,18 @@ int main(int argc , char *argv[])
                          .ip = "127.0.0.1"};
 
     if(strcmp(argv[1], "read_file") == 0){
-        read_file(argv[2]);
+        load_params("params.txt", &params);
+        setup_queue(params);
+        file_reader(argv[2], params);
+
+        pthread_create(&gui, NULL, gui_draw, (void*)&params);
+        pthread_create(&output, NULL, output_package, (void*)&params);
+
+        pthread_join(output, NULL);
+        pthread_join(gui, NULL);
+
+        free_queue();
+
         return 0;
     }
 

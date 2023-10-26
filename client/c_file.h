@@ -5,4 +5,4 @@ void save_params(parameters params);
 void load_params(const char *filename, parameters *params);
 
 void *file_writer(void *args);
-void file_reader(parameters params);
+void file_reader(const char *file, parameters params);

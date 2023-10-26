@@ -47,6 +47,8 @@ void load_params(const char *filename, parameters *params){
     }
 
     fclose(f);
+
+    params->queue_size = params->file_entries;
 }
 
 void *file_writer(void *args){
@@ -76,6 +78,14 @@ void *file_writer(void *args){
     }
 }
 
-void file_reader(parameters params){
+void file_reader(const char *file, parameters params){
+    FILE *f;
+    f = fopen(file, "rb");
+
+    char buffer[(params.num_of_fields * params.size_of_field + 4) * params.file_entries];
     
+    fread(buffer, sizeof(char) * params.num_of_fields * params.size_of_field + 4 , params.file_entries, f);
+    write_to_queue(&buffer[0], params.file_entries, FILEW, params);
+
+    fclose(f);
 }

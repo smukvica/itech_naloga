@@ -3,6 +3,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #include "c_queue.h"
 
 char *queue;
@@ -17,7 +19,7 @@ void write_to_queue(char *data, int size, int id, parameters params){
     sem_wait(&semaphore_q);
     writer_index += size;
     if(writer_index >= INT_MAX)
-    writer_index = 0;
+    writer_index %= params.queue_size;
     sem_post(&semaphore_q);
 }
 
@@ -32,7 +34,7 @@ int get_from_queue(char *data, int size, int id, parameters params){ // return 1
         memcpy(data, queue + (reader_index[id] % params.queue_size) * (params.num_of_fields * params.size_of_field + 4),
                (params.num_of_fields * params.size_of_field + 4) * size);
         reader_index[id] += size;
-        if(reader_index[id] >= INT_MAX) reader_index[id] = 0;
+        if(reader_index[id] >= INT_MAX) reader_index[id] %= params.queue_size;
         return 0;
     }
     return 1;
