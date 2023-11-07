@@ -26,13 +26,13 @@ void *read_package(void *arguments){
         exit(1);
 	}
 
-    parameters *args = arguments;
+    parameters *params = arguments;
 
-    char server_reply[args->num_of_fields * args->size_of_field + 4];
+    char server_reply[params->num_of_fields * params->size_of_field + 4];
 
-	server.sin_addr.s_addr = inet_addr(args->ip);
+	server.sin_addr.s_addr = inet_addr(params->ip);
 	server.sin_family = AF_INET;
-	server.sin_port = htons(args->port);
+	server.sin_port = htons(params->port);
 
 	//Connect to remote server
 	if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -46,14 +46,14 @@ void *read_package(void *arguments){
     double t = omp_get_wtime();
 
     while(1){
-        int ret = recv(socket_desc, &server_reply, args->num_of_fields * args->size_of_field + 4, 0);
+        int ret = recv(socket_desc, &server_reply, params->num_of_fields * params->size_of_field + 4, 0);
         if( ret < 0){
             puts("recv failed");
             return 0;
         }
         if (ret != 0){
             received_packages++;
-            write_to_queue(server_reply, 1, RECEIVER, *args);
+            write_to_queue(server_reply, 1, RECEIVER, *params);
         }
 
         if(program_terminate == 1 || ret == 0){
