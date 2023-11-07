@@ -27,6 +27,7 @@ int get_from_queue(char *data, int size, int id, parameters params){ // return 1
     
     int can_write = 0;
 
+    
     if(id == GUI){
         sem_wait(&semaphore_q);
         reader_index[id] = writer_index - size;

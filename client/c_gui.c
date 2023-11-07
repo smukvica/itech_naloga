@@ -25,7 +25,7 @@ int port_value = 8888;
 int file_entries_value = 100;
 
 int texture_size = 1000;
-int screen_size = 500;
+int samples = 500;
 
 extern int program_terminate;
 extern int setup_complete;
@@ -65,21 +65,22 @@ void create_texture(parameters params){
 }
 
 void delete_texture(){
-    UnloadTexture(texture);
     free(texture_data);
 }
 
 void create_image_from_data(char *data, parameters params){
-    number_of_samples = 0;
-    texture_offset = 0;
-    clear_texture(params);
-    for(int k = 0; k < screen_size; k++){
+    //if(number_of_samples >= texture_size){
+        number_of_samples = 0;
+        texture_offset = 0;
+        clear_texture(params);
+    //}
+    for(int k = 0; k < samples; k++){
         int f = k * (params.size_of_field * params.num_of_fields + 4);
-        unsigned int out;
+        unsigned int out = 0;
         for(int i = 0; i < params.num_of_fields; i++){
             memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
             unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100.0); 
-            texture_data[texture_width * (height_offset + i * 100) + number_of_samples] = 0;
+            texture_data[texture_width * (height_offset + i * 100) + k] = 0;
         }
         number_of_samples += 1;
     }
@@ -349,7 +350,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR);
     
-	InitWindow(250+600, 500, "Client");
+	InitWindow(250+600, 1000, "Client");
 
     parameters *params = (parameters*)args;
 
@@ -374,7 +375,7 @@ void *gui_setup(void *args){
     sscanf(params->ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
 	//--------------------------------------------------------------------------------------
 
-    char data[(params->size_of_field * params->num_of_fields + 4) * screen_size];
+    char data[(params->size_of_field * params->num_of_fields + 4) * samples];
     bool refresh = true;
 
 
@@ -385,7 +386,18 @@ void *gui_setup(void *args){
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
 
-		ClearBackground(WHITE);
+        if(setup_complete && refresh == true)
+        {
+            int ret = get_from_queue(&data[0], samples, GUI, *params);
+            if(ret != 1){
+                create_image_from_data(&data[0], *params);
+                refresh = false;
+            }
+        }
+
+        DrawTexture(texture, 350 - texture_offset, 0, WHITE);
+
+        ClearBackground(WHITE);
         DrawRectangle(0, 0, 250, params->num_of_fields * 100, RAYWHITE);
 
         DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
@@ -451,19 +463,19 @@ void *gui_setup(void *args){
             read_file = 1;
 		}
 
-
-        if(refresh == true && setup_complete && (start == 1 || read_file == 1))
-        {
-            int ret = get_from_queue(&data[0], screen_size, GUI, *params);
-            if(ret != 1){
-                create_image_from_data(&data[0], *params);
-                refresh = false;
-            }
-        }
-
-        DrawTexture(texture, 350, 0, WHITE);
-
         DrawRectangle(250, 0, 100, params->num_of_fields * 100, RAYWHITE);
+
+        //if(number_of_samples > texture_offset + 500)
+        //    texture_offset += samples;
+        
+        /*
+        texture_offset -= GetMouseWheelMove() * 25;
+
+        if(texture_offset < 0)
+            texture_offset = 0;
+        if(texture_offset > texture_size - 500)
+            texture_offset = texture_size - 500;
+        */
 
         
         for(int i = 0; i < params->num_of_fields; i++){
@@ -473,60 +485,14 @@ void *gui_setup(void *args){
         if(GuiButton((Rectangle){ 260, 10, 75, 20 }, "Refresh data")){
             refresh = true;
         }
+
+        
 		EndDrawing();
         //----------------------------------------------------------------------------------
 	}
     
 	CloseWindow();
-    //delete_texture();
+    delete_texture();
     program_terminate = 1;
     sleep(1);
-}
-
-void *gui_draw(void *args){
-    SetTraceLogLevel(LOG_ERROR);
-    parameters params = *(parameters*)args;
-    InitWindow(600, 100 * params.num_of_fields, "Client");
-
-    SetTargetFPS(60);
-    char data[(params.size_of_field * params.num_of_fields + 4) * 500];
-    create_texture(params);
-    bool refresh = true;
-    while(program_terminate != 1){
-        if(refresh == true)
-        {
-            int ret = get_from_queue(&data[0], 500, GUI, params);
-            if(ret != 1){
-                create_image_from_data(&data[0], params);
-                refresh = false;
-            }
-        }
-
-        BeginDrawing();
-        ClearBackground(WHITE);
-
-        
-
-        DrawTexture(texture, 100 - texture_offset, 0, WHITE);
-
-        DrawRectangle(0, 0, 100, params.num_of_fields * 100, RAYWHITE);
-
-        
-        for(int i = 0; i < params.num_of_fields; i++){
-            DrawText(params.names[i], 10, 50 + i * 100, 20, DARKGRAY);
-        }
-
-        if(GuiButton((Rectangle){ 10, 10, 75, 20 }, "Refresh data")){
-            refresh = true;
-        }
-
-        
-
-        EndDrawing();
-
-        if(WindowShouldClose())
-            program_terminate = 1;
-    }
-    delete_texture();
-    CloseWindow();
 }

@@ -69,7 +69,7 @@ void *output_package(void *args){
             int i;
             for(i = 0; i < params.num_of_fields * params.size_of_field; i += params.size_of_field){
                 memcpy(&out, &data[i], sizeof(char) * params.size_of_field);
-                printf("%d\t", out);
+                printf("%u\t", out);
             }
             memcpy(&out, &data[i], sizeof(char) * 4);
             printf("%u\n", out);

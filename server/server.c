@@ -48,10 +48,10 @@ void create_packet(char *packet){
 
     memcpy(packet, fields, num_of_fields*size_of_field + 4);
 
-    int out = 0;
+    unsigned int out = 0;
     for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
         memcpy(&out, &fields[i], sizeof(char) * size_of_field);
-        printf("%d\t", out);
+        printf("%u\t", out);
     }
     printf("%u\n", status);
 }
