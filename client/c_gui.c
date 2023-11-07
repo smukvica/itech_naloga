@@ -271,7 +271,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
                 if (GetTextWidth(textValue) < bounds.width)
                 {
                     int key = GetCharPressed();
-                    if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || key == 46)
+                    if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || ((key >= 98) && (key <= 122)) || key == 46 || key == 95)
                     {
                         textValue[keyCount] = (char)key;
                         textValue[++keyCount] = '\0';
@@ -343,7 +343,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-int gui_setup(parameters *params){
+int gui_setup(parameters *params, char *filename){
     SetTraceLogLevel(LOG_ERROR);
     
 	InitWindow(250, 400, "Client");
@@ -382,7 +382,8 @@ int gui_setup(parameters *params){
         DrawText("file_entries", 10, 170, 10, DARKGRAY);
         DrawText("ip", 10, 210, 10, DARKGRAY);
         DrawText("port", 10, 250, 10, DARKGRAY);
-        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, " write to std out", &variables[8]);
+        DrawText("file name", 130, 300, 10, DARKGRAY);
+        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, " write to screen", &variables[8]);
         GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, " write to file", &variables[7]);
         if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, NULL, &port_value, 0, 1000000, variables[6])) variables[6] = !variables[6];
         for(int i = 0; i < 4; i++){
@@ -394,10 +395,12 @@ int gui_setup(parameters *params){
         if (GuiDropdownBox((Rectangle){ 10, 65, 100, 20 }, dropdown_size_fields_options, &dropdown_size_field_value, variables[1])) variables[1] = !variables[1];
         if (GuiDropdownBox((Rectangle){ 10, 25, 100, 20}, dropdown_num_fields_options, &dropdown_num_fields_value, variables[0])) variables[0] = !variables[0];
 
-        DrawText("Field names", 123, 10, 10, DARKGRAY);
+        DrawText("Field names", 130, 10, 10, DARKGRAY);
         for(int i = 0; i < dropdown_num_fields_value + 1; i++){
-		    if (GuiCharBox((Rectangle){ 123, 25 + i * 25, 100, 20 }, NULL, params->names[i], name_variables[i])) name_variables[i] = !name_variables[i];
+		    if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, NULL, params->names[i], name_variables[i])) name_variables[i] = !name_variables[i];
         }
+
+        if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], variables[9])) variables[9] = !variables[9];
 
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect"))
 		{
@@ -422,13 +425,19 @@ int gui_setup(parameters *params){
             CloseWindow();
             return 0;
 		}
+
+        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file"))
+		{
+            CloseWindow();
+            return 1;
+		}
 		
 		EndDrawing();
         //----------------------------------------------------------------------------------
 	}
     
 	CloseWindow();
-    return 1;
+    return -1;
 }
 
 void *gui_draw(void *args){

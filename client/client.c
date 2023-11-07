@@ -63,6 +63,20 @@ void print_help(){
     printf("at the end of all commands write the names of the data fields in order\n");
 }
 
+void open_file_input(parameters params, char *filename){
+    load_params("params.txt", &params);
+    setup_queue(params);
+    file_reader(filename, params);
+
+    pthread_create(&gui, NULL, gui_draw, (void*)&params);
+    pthread_create(&output, NULL, output_package, (void*)&params);
+
+    pthread_join(output, NULL);
+    pthread_join(gui, NULL);
+
+    free_queue();
+}
+
 int main(int argc , char *argv[])
 {
     parameters params = {.queue_size = 100,
@@ -78,18 +92,7 @@ int main(int argc , char *argv[])
                          .ip = "127.0.0.1"};
 
     if(strcmp(argv[1], "read_file") == 0){
-        load_params("params.txt", &params);
-        setup_queue(params);
-        file_reader(argv[2], params);
-
-        pthread_create(&gui, NULL, gui_draw, (void*)&params);
-        pthread_create(&output, NULL, output_package, (void*)&params);
-
-        pthread_join(output, NULL);
-        pthread_join(gui, NULL);
-
-        free_queue();
-
+        open_file_input(params, argv[2]);
         return 0;
     }
 
@@ -152,10 +155,15 @@ int main(int argc , char *argv[])
         strcpy(params.names[k], argv[c+k]);
     }
     
-
-    int ret = gui_setup(&params);
-    if(ret)
+    char filename[25];
+    int ret = gui_setup(&params, &filename[0]);
+    if(ret == -1)
         return 1;
+    if(ret == 1){
+        open_file_input(params, &filename[0]);
+        printf("%s\n", filename);
+        return 0;
+    }
     save_params(params);
 
     setup_queue(params);
