@@ -55,7 +55,6 @@ void clear_texture(parameters params){
 }
 
 void create_texture(parameters params){
-    
     texture_width = texture_size;
     texture_height = params.num_of_fields * 100;
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
@@ -64,22 +63,21 @@ void create_texture(parameters params){
 }
 
 void delete_texture(){
+    UnloadTexture(texture);
     free(texture_data);
 }
 
 void create_image_from_data(char *data, parameters params){
-    if(number_of_samples >= texture_size){
-        number_of_samples = 0;
-        texture_offset = 0;
-        clear_texture(params);
-    }
-    for(int k = 0; k < 1; k++){
+    number_of_samples = 0;
+    texture_offset = 0;
+    clear_texture(params);
+    for(int k = 0; k < 500; k++){
         int f = k * (params.size_of_field * params.num_of_fields + 4);
         unsigned int out;
         for(int i = 0; i < params.num_of_fields; i++){
             memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
-            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100); 
-            texture_data[texture_width * (height_offset + i * 100) + number_of_samples] = 0;
+            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100.0); 
+            texture_data[texture_width * (height_offset + i * 100) + k] = 0;
         }
         number_of_samples += 1;
     }
@@ -274,7 +272,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
                 if (GetTextWidth(textValue) < bounds.width)
                 {
                     int key = GetCharPressed();
-                    if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || ((key >= 98) && (key <= 122)) || key == 46 || key == 95)
+                    if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || ((key >= 97) && (key <= 122)) || key == 46 || key == 95)
                     {
                         textValue[keyCount] = (char)key;
                         textValue[++keyCount] = '\0';
@@ -349,19 +347,22 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 int gui_setup(parameters *params, char *filename){
     SetTraceLogLevel(LOG_ERROR);
     
-	InitWindow(250, 400, "Client");
+	InitWindow(250, 500, "Client");
 
 	// General variables
 	SetTargetFPS(60);
     
-	bool variables[17];
-    bool name_variables[10];
-    bool ip_vars[4];
+	bool variables[10] = {false};
+    bool name_variables[10] = {false};
+    bool ip_vars[4] = {false};
     int ip[4];
 
     dropdown_num_bpm_value = get_index_of_value(params->number_of_bpm, dropdown_num_bpm_options);
     dropdown_num_fields_value = params->num_of_fields - 1;
     dropdown_size_field_value = get_index_of_value(params->size_of_field, dropdown_size_fields_options);
+
+    variables[8] = params->std_output;
+    variables[7] = params->file_write;
 
     queue_size_value = params->queue_size;
     file_entries_value = params->file_entries;
@@ -401,6 +402,8 @@ int gui_setup(parameters *params, char *filename){
         DrawText("Field names", 130, 10, 10, DARKGRAY);
         for(int i = 0; i < dropdown_num_fields_value + 1; i++){
 		    if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, NULL, params->names[i], name_variables[i])) name_variables[i] = !name_variables[i];
+            if(strlen(params->names[i]) >= 32)
+                params->names[i][32] = '\0';
         }
 
         if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], variables[9])) variables[9] = !variables[9];
@@ -434,7 +437,6 @@ int gui_setup(parameters *params, char *filename){
             CloseWindow();
             return 1;
 		}
-		
 		EndDrawing();
         //----------------------------------------------------------------------------------
 	}
@@ -449,25 +451,18 @@ void *gui_draw(void *args){
     InitWindow(600, 100 * params.num_of_fields, "Client");
 
     SetTargetFPS(60);
-    char data[params.size_of_field * params.num_of_fields + 4];
+    char data[(params.size_of_field * params.num_of_fields + 4) * 500];
     create_texture(params);
-    bool scroll = true;
+    bool refresh = true;
     while(program_terminate != 1){
-
-        texture_offset -= GetMouseWheelMove() * 5;
-
-        if(texture_offset < 0)
-            texture_offset = 0;
-        if(texture_offset > texture_size - 500)
-            texture_offset = texture_size - 500;
-        
-        int ret = get_from_queue(&data[0], 1, GUI, params);
-        if(ret != 1){
-            create_image_from_data(&data[0], params);
+        if(refresh == true)
+        {
+            int ret = get_from_queue(&data[0], 500, GUI, params);
+            if(ret != 1){
+                create_image_from_data(&data[0], params);
+                refresh = false;
+            }
         }
-
-        if(number_of_samples > texture_offset + 500 && scroll == true)
-            texture_offset++;
 
         BeginDrawing();
         ClearBackground(WHITE);
@@ -478,9 +473,13 @@ void *gui_draw(void *args){
 
         DrawRectangle(0, 0, 100, params.num_of_fields * 100, RAYWHITE);
 
-        GuiCheckBox((Rectangle){ 10, 10, 20, 20 }, "auto scroll", &scroll);
+        
         for(int i = 0; i < params.num_of_fields; i++){
             DrawText(params.names[i], 10, 50 + i * 100, 20, DARKGRAY);
+        }
+
+        if(GuiButton((Rectangle){ 10, 10, 75, 20 }, "Refresh data")){
+            refresh = true;
         }
 
         

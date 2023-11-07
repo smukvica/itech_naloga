@@ -24,11 +24,19 @@ void write_to_queue(char *data, int size, int id, parameters params){
 }
 
 int get_from_queue(char *data, int size, int id, parameters params){ // return 1 if not cool
+    
     int can_write = 0;
 
-    sem_wait(&semaphore_q);
-    if(reader_index[id] + size <= writer_index) can_write = 1;
-    sem_post(&semaphore_q);
+    if(id == GUI){
+        sem_wait(&semaphore_q);
+        reader_index[id] = writer_index - 500;
+        sem_post(&semaphore_q);
+        if(reader_index[id] >= 0) can_write = 1;
+    }else{
+        sem_wait(&semaphore_q);
+        if(reader_index[id] + size <= writer_index) can_write = 1;
+        sem_post(&semaphore_q);
+    }
 
     if(can_write){
         memcpy(data, queue + (reader_index[id] % params.queue_size) * (params.num_of_fields * params.size_of_field + 4),

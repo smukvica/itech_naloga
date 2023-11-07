@@ -63,6 +63,64 @@ void print_help(){
     printf("at the end of all commands write the names of the data fields in order\n");
 }
 
+int read_arguments(int argc, char *argv[], parameters *params){
+    int c = 1;
+    while(c < argc - params->num_of_fields){
+        if(strcmp(argv[c], "number_of_fields") == 0){
+            params->num_of_fields = atoi(argv[c+1]);
+            if(params->num_of_fields < 1 || params->num_of_fields > 10){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
+        }
+        if(strcmp(argv[c], "size_of_field") == 0){
+            params->size_of_field = atoi(argv[c+1]);
+            if(params->size_of_field != 1 && params->size_of_field != 2 && params->size_of_field != 4){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
+        }
+        if(strcmp(argv[c], "queue_size") == 0){
+            params->queue_size = atoi(argv[c+1]);
+            if(params->queue_size < 100000 || params->queue_size > 100000000){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
+        }
+        if(strcmp(argv[c], "number_of_packets") == 0){
+            params->number_of_packets = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "number_of_bpm") == 0){
+            params->number_of_bpm = atoi(argv[c+1]);
+            if(params->number_of_bpm < 1 || params->number_of_bpm > 4){
+                printf("wrong usage of argument %s. see help\n", argv[c]);
+                return 1;
+            }
+        }
+        if(strcmp(argv[c], "file_entries") == 0){
+            params->file_entries = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "ip") == 0){
+            strcpy(params->ip, argv[c+1]);
+        }
+        if(strcmp(argv[c], "port") == 0){
+            params->port = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "writer") == 0){
+            params->file_write = atoi(argv[c+1]);
+        }
+        if(strcmp(argv[c], "output") == 0){
+            params->std_output = atoi(argv[c+1]);
+        }
+        c += 2;
+    }
+    for(int k = 0; k < params->num_of_fields; k++){
+        if(strlen(argv[c+k]) >= 32)
+            argv[c+k][32] = '\0';
+        strcpy(params->names[k], argv[c+k]);
+    }
+}
+
 void open_file_input(parameters params, char *filename){
     load_params(&params);
     setup_queue(params);
@@ -96,64 +154,14 @@ int main(int argc , char *argv[])
         return 0;
     }
 
-    int c = 1;
     if(strcmp(argv[1], "help") == 0){
         print_help();
         return 0;
     }
-    
-    while(c < argc - params.num_of_fields){
-        if(strcmp(argv[c], "number_of_fields") == 0){
-            params.num_of_fields = atoi(argv[c+1]);
-            if(params.num_of_fields < 1 || params.num_of_fields > 10){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
-                return 1;
-            }
-        }
-        if(strcmp(argv[c], "size_of_field") == 0){
-            params.size_of_field = atoi(argv[c+1]);
-            if(params.size_of_field != 1 && params.size_of_field != 2 && params.size_of_field != 4){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
-                return 1;
-            }
-        }
-        if(strcmp(argv[c], "queue_size") == 0){
-            params.queue_size = atoi(argv[c+1]);
-            if(params.queue_size < 100000 || params.queue_size > 100000000){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
-                return 1;
-            }
-        }
-        if(strcmp(argv[c], "number_of_packets") == 0){
-            params.number_of_packets = atoi(argv[c+1]);
-        }
-        if(strcmp(argv[c], "number_of_bpm") == 0){
-            params.number_of_bpm = atoi(argv[c+1]);
-            if(params.number_of_bpm < 1 || params.number_of_bpm > 4){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
-                return 1;
-            }
-        }
-        if(strcmp(argv[c], "file_entries") == 0){
-            params.file_entries = atoi(argv[c+1]);
-        }
-        if(strcmp(argv[c], "ip") == 0){
-            strcpy(params.ip, argv[c+1]);
-        }
-        if(strcmp(argv[c], "port") == 0){
-            params.port = atoi(argv[c+1]);
-        }
-        if(strcmp(argv[c], "writer") == 0){
-            params.file_write = atoi(argv[c+1]);
-        }
-        if(strcmp(argv[c], "output") == 0){
-            params.std_output = atoi(argv[c+1]);
-        }
-        c += 2;
-    }
-    for(int k = 0; k < params.num_of_fields; k++){
-        strcpy(params.names[k], argv[c+k]);
-    }
+
+    if(read_arguments(argc, argv, &params) == 1)
+        return 1;
+
     
     char filename[25];
     int ret = gui_setup(&params, &filename[0]);
@@ -161,7 +169,6 @@ int main(int argc , char *argv[])
         return 1;
     if(ret == 1){
         open_file_input(params, &filename[0]);
-        printf("%s\n", filename);
         return 0;
     }
     save_params(params);
@@ -180,7 +187,6 @@ int main(int argc , char *argv[])
     while(program_terminate != 1){
 
     }
-
     
     pthread_join(receiver, NULL);
     if(params.std_output)
@@ -197,7 +203,7 @@ int main(int argc , char *argv[])
 /*
 
 compile:
-gcc *.c -lpthread -fopenmp -o client
+gcc *.c -lpthread -fopenmp -lraylib -lm -o client
 
 stop:
 Ctrl + C
