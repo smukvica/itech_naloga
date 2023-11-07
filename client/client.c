@@ -64,7 +64,7 @@ void print_help(){
 }
 
 void open_file_input(parameters params, char *filename){
-    load_params("params.txt", &params);
+    load_params(&params);
     setup_queue(params);
     file_reader(filename, params);
 

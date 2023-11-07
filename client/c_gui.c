@@ -43,12 +43,7 @@ double clamp(double d, double min, double max) {
   return t > max ? max : t;
 }
 
-void create_texture(parameters params){
-    
-    texture_width = texture_size;
-    texture_height = params.num_of_fields * 100;
-    texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
-    image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
+void clear_texture(parameters params){
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
             if(j%100 == 0 && j != 0)
@@ -59,6 +54,15 @@ void create_texture(parameters params){
     }
 }
 
+void create_texture(parameters params){
+    
+    texture_width = texture_size;
+    texture_height = params.num_of_fields * 100;
+    texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
+    image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
+    clear_texture(params);
+}
+
 void delete_texture(){
     free(texture_data);
 }
@@ -67,8 +71,7 @@ void create_image_from_data(char *data, parameters params){
     if(number_of_samples >= texture_size){
         number_of_samples = 0;
         texture_offset = 0;
-        delete_texture();
-        create_texture(params);
+        clear_texture(params);
     }
     for(int k = 0; k < 1; k++){
         int f = k * (params.size_of_field * params.num_of_fields + 4);
@@ -446,8 +449,7 @@ void *gui_draw(void *args){
     InitWindow(600, 100 * params.num_of_fields, "Client");
 
     SetTargetFPS(60);
-    int observed_variable = 0;
-    char data[(params.size_of_field * params.num_of_fields + 4) * 1];
+    char data[params.size_of_field * params.num_of_fields + 4];
     create_texture(params);
     bool scroll = true;
     while(program_terminate != 1){

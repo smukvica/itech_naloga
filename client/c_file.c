@@ -10,45 +10,20 @@ extern int program_terminate;
 
 void save_params(parameters params){
     FILE *f;
-    f = fopen("params.txt", "w");
+    f = fopen("params.bin", "wb");
 
-    fprintf(f, "fields: %d", params.num_of_fields);
-    fprintf(f, "\nsize of field: %d", params.size_of_field);
-    fprintf(f, "\nfile entries: %d", params.file_entries);
-
-    fprintf(f, "\nfield names: ");
-    for(int i = 0; i < params.num_of_fields; i++){
-        fprintf(f, "%s ", params.names[i]);
-    }
-    
+    fwrite(&params, sizeof(parameters), 1, f);
     fclose(f);
 }
 
-void load_params(const char *filename, parameters *params){
+void load_params(parameters *params){
     FILE *f;
-    f = fopen(filename, "r");
-
-    char *line = NULL;
-    size_t len = 0;
-
-    int read = getline(&line, &len, f);
-    sscanf(line, "fields: %d", &params->num_of_fields);
-    read = getline(&line, &len, f);
-    sscanf(line, "size of field: %d", &params->size_of_field);
-    read = getline(&line, &len, f);
-    sscanf(line, "file entries: %d", &params->file_entries);
-    read = getline(&line, &len, f);
-
-    char *token = strtok(line, " ");
-    for(int k = 1; k <= params->num_of_fields + 1; k++){
-        token = strtok(NULL, " ");
-        if(k - 2 >= 0)
-            strcpy(params->names[k - 2], token);
-    }
+    f = fopen("params.bin", "rb");
+    fread(params, sizeof(parameters), 1, f);
 
     fclose(f);
 
-    params->queue_size = params->file_entries;
+    //params->queue_size = params->file_entries;
 }
 
 void *file_writer(void *args){
