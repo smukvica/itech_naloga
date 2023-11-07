@@ -12,3 +12,4 @@ int get_from_queue(char *data, int size, int id, parameters params);
 
 void setup_queue(parameters params);
 void free_queue();
+void reset_queue();

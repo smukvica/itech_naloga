@@ -19,6 +19,12 @@ pthread_t writer;
 pthread_t gui;
 
 int program_terminate = 0;
+int setup_complete = 0;
+int read_file = 0;
+int start = 0;
+int pause_output = 0;
+
+char filename[25];
 
 void print_argument(const char *arg, const char *explain, const char *usage){
     printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
@@ -123,16 +129,7 @@ int read_arguments(int argc, char *argv[], parameters *params){
 
 void open_file_input(parameters params, char *filename){
     load_params(&params);
-    setup_queue(params);
     file_reader(filename, params);
-
-    pthread_create(&gui, NULL, gui_draw, (void*)&params);
-    pthread_create(&output, NULL, output_package, (void*)&params);
-
-    pthread_join(output, NULL);
-    pthread_join(gui, NULL);
-
-    free_queue();
 }
 
 int main(int argc , char *argv[])
@@ -162,8 +159,8 @@ int main(int argc , char *argv[])
     if(read_arguments(argc, argv, &params) == 1)
         return 1;
 
+    /*
     
-    char filename[25];
     int ret = gui_setup(&params, &filename[0]);
     if(ret == -1)
         return 1;
@@ -171,13 +168,26 @@ int main(int argc , char *argv[])
         open_file_input(params, &filename[0]);
         return 0;
     }
+    */
+
+
+    pthread_create(&gui, NULL, gui_setup, (void*)&params);
+
+    while(setup_complete == 0 && read_file == 0){
+        sleep(0);
+        if(program_terminate == 1){
+            pthread_join(gui, NULL);
+            return 1;
+        }
+    }
+
     save_params(params);
 
     setup_queue(params);
 
-    pthread_create(&gui, NULL, gui_draw, (void*)&params);
+    int receive = 0;
 
-    pthread_create(&receiver, NULL, read_package, (void*)&params);
+    
     if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
@@ -185,17 +195,27 @@ int main(int argc , char *argv[])
     
 
     while(program_terminate != 1){
-
+        if(read_file == 1){
+            read_file = 0;
+            pause_output = 1;
+            reset_queue();
+            open_file_input(params, &filename[0]);
+        }
+        else if(start == 1 && receive != 1){
+            pthread_create(&receiver, NULL, read_package, (void*)&params);
+            receive = 1;
+        }
+        sleep(0);
     }
-    
-    pthread_join(receiver, NULL);
+    if(receive == 1)
+        pthread_join(receiver, NULL);
     if(params.std_output)
         pthread_join(output, NULL);
     if(params.file_write)
         pthread_join(writer, NULL);
     pthread_join(gui, NULL);
 
-    free_queue();
+    //free_queue();
 
 	return 0;
 }

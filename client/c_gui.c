@@ -12,7 +12,7 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-extern int program_terminate;
+
 
 const char dropdown_num_fields_options[21] = "1;2;3;4;5;6;7;8;9;10\0";
 int dropdown_num_fields_value = 0;
@@ -25,7 +25,13 @@ int port_value = 8888;
 int file_entries_value = 100;
 
 int texture_size = 1000;
+int screen_size = 500;
 
+extern int program_terminate;
+extern int setup_complete;
+extern char filename[25];
+extern int read_file;
+extern int start;
 
 Image image;
 Texture2D texture;
@@ -37,11 +43,6 @@ int number_of_samples = 0;
 int texture_offset = 0;
 
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
-
-double clamp(double d, double min, double max) {
-  const double t = d < min ? min : d;
-  return t > max ? max : t;
-}
 
 void clear_texture(parameters params){
     for(int i = 0; i < texture_width; i++){
@@ -60,6 +61,7 @@ void create_texture(parameters params){
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
     image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
     clear_texture(params);
+    texture = LoadTextureFromImage(image);
 }
 
 void delete_texture(){
@@ -71,13 +73,13 @@ void create_image_from_data(char *data, parameters params){
     number_of_samples = 0;
     texture_offset = 0;
     clear_texture(params);
-    for(int k = 0; k < 500; k++){
+    for(int k = 0; k < screen_size; k++){
         int f = k * (params.size_of_field * params.num_of_fields + 4);
         unsigned int out;
         for(int i = 0; i < params.num_of_fields; i++){
             memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
             unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100.0); 
-            texture_data[texture_width * (height_offset + i * 100) + k] = 0;
+            texture_data[texture_width * (height_offset + i * 100) + number_of_samples] = 0;
         }
         number_of_samples += 1;
     }
@@ -344,10 +346,12 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-int gui_setup(parameters *params, char *filename){
+void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR);
     
-	InitWindow(250, 500, "Client");
+	InitWindow(250+600, 500, "Client");
+
+    parameters *params = (parameters*)args;
 
 	// General variables
 	SetTargetFPS(60);
@@ -370,6 +374,10 @@ int gui_setup(parameters *params, char *filename){
     sscanf(params->ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
 	//--------------------------------------------------------------------------------------
 
+    char data[(params->size_of_field * params->num_of_fields + 4) * screen_size];
+    bool refresh = true;
+
+
 	// Main game loop
 	while (!WindowShouldClose())
 	{
@@ -377,7 +385,8 @@ int gui_setup(parameters *params, char *filename){
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
 
-		ClearBackground(RAYWHITE);
+		ClearBackground(WHITE);
+        DrawRectangle(0, 0, 250, params->num_of_fields * 100, RAYWHITE);
 
         DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
         DrawText("size_of_field", 10, 50, 10, DARKGRAY);
@@ -393,7 +402,7 @@ int gui_setup(parameters *params, char *filename){
         for(int i = 0; i < 4; i++){
             if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &ip[i], 0, 255, ip_vars[i])) ip_vars[i] = !ip_vars[i];
         }
-        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 100, 1000, variables[4])) variables[4] = !variables[4];
+        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 500, 1000, variables[4])) variables[4] = !variables[4];
         if (GuiDropdownBox((Rectangle){ 10, 145, 100, 20 }, dropdown_num_bpm_options, &dropdown_num_bpm_value, variables[3])) variables[3] = !variables[3];
         if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 100000, 100000000, variables[2])) variables[2] = !variables[2];
         if (GuiDropdownBox((Rectangle){ 10, 65, 100, 20 }, dropdown_size_fields_options, &dropdown_size_field_value, variables[1])) variables[1] = !variables[1];
@@ -408,7 +417,7 @@ int gui_setup(parameters *params, char *filename){
 
         if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], variables[9])) variables[9] = !variables[9];
 
-		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Connect"))
+		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Setup") && setup_complete == 0)
 		{
             sprintf(params->ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
             params->size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
@@ -428,21 +437,50 @@ int gui_setup(parameters *params, char *filename){
                 params->std_output = 1;
             else
                 params->std_output = 0;
-            CloseWindow();
-            return 0;
+            setup_complete = 1;
+            create_texture(*params);
 		}
 
-        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file"))
+        if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Start") && setup_complete == 1)
 		{
-            CloseWindow();
-            return 1;
+            start = 1;
 		}
+
+        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && setup_complete == 1)
+		{
+            read_file = 1;
+		}
+
+
+        if(refresh == true && setup_complete && (start == 1 || read_file == 1))
+        {
+            int ret = get_from_queue(&data[0], screen_size, GUI, *params);
+            if(ret != 1){
+                create_image_from_data(&data[0], *params);
+                refresh = false;
+            }
+        }
+
+        DrawTexture(texture, 350, 0, WHITE);
+
+        DrawRectangle(250, 0, 100, params->num_of_fields * 100, RAYWHITE);
+
+        
+        for(int i = 0; i < params->num_of_fields; i++){
+            DrawText(params->names[i], 260, 50 + i * 100, 20, DARKGRAY);
+        }
+
+        if(GuiButton((Rectangle){ 260, 10, 75, 20 }, "Refresh data")){
+            refresh = true;
+        }
 		EndDrawing();
         //----------------------------------------------------------------------------------
 	}
     
 	CloseWindow();
-    return -1;
+    //delete_texture();
+    program_terminate = 1;
+    sleep(1);
 }
 
 void *gui_draw(void *args){

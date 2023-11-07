@@ -29,7 +29,7 @@ int get_from_queue(char *data, int size, int id, parameters params){ // return 1
 
     if(id == GUI){
         sem_wait(&semaphore_q);
-        reader_index[id] = writer_index - 500;
+        reader_index[id] = writer_index - size;
         sem_post(&semaphore_q);
         if(reader_index[id] >= 0) can_write = 1;
     }else{
@@ -58,4 +58,12 @@ void free_queue(){
     free(queue);
 
     sem_destroy(&semaphore_q);
+}
+
+void reset_queue(){
+    writer_index = 0;
+    reader_index[0] = 0;
+    reader_index[1] = 0;
+    reader_index[2] = 0;
+    reader_index[3] = 0;
 }
