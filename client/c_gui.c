@@ -24,7 +24,7 @@ int queue_size_value = 1000;
 int port_value = 8888;
 int file_entries_value = 100;
 
-int texture_size = 500;
+int texture_size = 1000;
 int samples = 1;
 bool refresh = true;
 
@@ -45,6 +45,7 @@ int texture_offset = 0;
 
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
 
+// remove
 void clear_texture2(parameters params){
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
@@ -80,6 +81,7 @@ void delete_texture(){
     free(texture_data);
 }
 
+// remove
 void create_image_from_data_circle(char *data, parameters params){
     clear_texture2(params);
     UnloadTexture(texture);
@@ -490,7 +492,7 @@ void *gui_setup(void *args){
 
         if(setup_complete == 1){
             for(int i = 0; i < params->num_of_fields; i++){
-                DrawText(params->names[i], 260, 10 + i * 500 / params->num_of_fields, 20, DARKGRAY);
+                DrawText(params->names[i], 260, 10 + i * 500 / params->num_of_fields, 10, DARKGRAY);
             }
             
             if(GuiButton((Rectangle){ 130, 375, 75, 20 }, "Refresh data")){
