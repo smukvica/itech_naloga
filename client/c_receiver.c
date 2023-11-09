@@ -64,5 +64,6 @@ void *read_package(void *arguments){
                                                                                                  (double)received_packages / t);
             return 0;
         }
+        sleep(0);
     }
 }

@@ -24,8 +24,9 @@ int queue_size_value = 1000;
 int port_value = 8888;
 int file_entries_value = 100;
 
-int texture_size = 1000;
-int samples = 500;
+int texture_size = 500;
+int samples = 1;
+bool refresh = true;
 
 extern int program_terminate;
 extern int setup_complete;
@@ -44,10 +45,21 @@ int texture_offset = 0;
 
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
 
+void clear_texture2(parameters params){
+    for(int i = 0; i < texture_width; i++){
+        for(int j = 0; j < texture_height;j++){
+            if(j == 250 || i == 250)
+                texture_data[j * texture_width + i] = 0;
+            else
+                texture_data[j * texture_width + i] = 255;
+        }
+    }
+}
+
 void clear_texture(parameters params){
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
-            if(j%100 == 0 && j != 0)
+            if(j%(500 / params.num_of_fields) == 0 && j != 0)
                 texture_data[j * texture_width + i] = 0;
             else
                 texture_data[j * texture_width + i] = 255;
@@ -57,7 +69,7 @@ void clear_texture(parameters params){
 
 void create_texture(parameters params){
     texture_width = texture_size;
-    texture_height = params.num_of_fields * 100;
+    texture_height = 500;
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
     image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
     clear_texture(params);
@@ -68,19 +80,27 @@ void delete_texture(){
     free(texture_data);
 }
 
+void create_image_from_data_circle(char *data, parameters params){
+    clear_texture2(params);
+    UnloadTexture(texture);
+    texture = LoadTextureFromImage(image);
+}
+
 void create_image_from_data(char *data, parameters params){
-    //if(number_of_samples >= texture_size){
+    if(number_of_samples >= 500){
         number_of_samples = 0;
         texture_offset = 0;
-        clear_texture(params);
-    //}
+        //clear_texture(params);
+        refresh = false;
+        return;
+    }
     for(int k = 0; k < samples; k++){
         int f = k * (params.size_of_field * params.num_of_fields + 4);
         unsigned int out = 0;
         for(int i = 0; i < params.num_of_fields; i++){
             memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
-            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])*100.0); 
-            texture_data[texture_width * (height_offset + i * 100) + k] = 0;
+            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1]) * (500.0 / (float)params.num_of_fields)); 
+            texture_data[texture_width * (height_offset + i * 500 / params.num_of_fields) + number_of_samples] = 0;
         }
         number_of_samples += 1;
     }
@@ -350,7 +370,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR);
     
-	InitWindow(250+600, 1000, "Client");
+	InitWindow(250+600, 500, "Client");
 
     parameters *params = (parameters*)args;
 
@@ -376,9 +396,8 @@ void *gui_setup(void *args){
 	//--------------------------------------------------------------------------------------
 
     char data[(params->size_of_field * params->num_of_fields + 4) * samples];
-    bool refresh = true;
 
-
+    //int ret = 1;
 	// Main game loop
 	while (!WindowShouldClose())
 	{
@@ -386,12 +405,15 @@ void *gui_setup(void *args){
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
 
+        //texture_offset -= GetMouseWheelMove();
+        
+
         if(setup_complete && refresh == true)
         {
             int ret = get_from_queue(&data[0], samples, GUI, *params);
             if(ret != 1){
                 create_image_from_data(&data[0], *params);
-                refresh = false;
+                //create_image_from_data_circle(&data[0], *params);
             }
         }
 
@@ -461,34 +483,29 @@ void *gui_setup(void *args){
         if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && setup_complete == 1)
 		{
             read_file = 1;
+            refresh = true;
 		}
 
-        DrawRectangle(250, 0, 100, params->num_of_fields * 100, RAYWHITE);
+        DrawRectangle(250, 0, 100, 500, RAYWHITE);
 
-        //if(number_of_samples > texture_offset + 500)
-        //    texture_offset += samples;
-        
-        /*
-        texture_offset -= GetMouseWheelMove() * 25;
-
-        if(texture_offset < 0)
-            texture_offset = 0;
-        if(texture_offset > texture_size - 500)
-            texture_offset = texture_size - 500;
-        */
-
-        
-        for(int i = 0; i < params->num_of_fields; i++){
-            DrawText(params->names[i], 260, 50 + i * 100, 20, DARKGRAY);
+        if(setup_complete == 1){
+            for(int i = 0; i < params->num_of_fields; i++){
+                DrawText(params->names[i], 260, 10 + i * 500 / params->num_of_fields, 20, DARKGRAY);
+            }
+            
+            if(GuiButton((Rectangle){ 130, 375, 75, 20 }, "Refresh data")){
+                refresh = true;
+                clear_texture(*params);
+                number_of_samples = 0;
+                update_queue_index(GUI);
+            }
         }
-
-        if(GuiButton((Rectangle){ 260, 10, 75, 20 }, "Refresh data")){
-            refresh = true;
-        }
+        
 
         
 		EndDrawing();
         //----------------------------------------------------------------------------------
+        sleep(0);
 	}
     
 	CloseWindow();

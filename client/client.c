@@ -159,17 +159,6 @@ int main(int argc , char *argv[])
     if(read_arguments(argc, argv, &params) == 1)
         return 1;
 
-    /*
-    
-    int ret = gui_setup(&params, &filename[0]);
-    if(ret == -1)
-        return 1;
-    if(ret == 1){
-        open_file_input(params, &filename[0]);
-        return 0;
-    }
-    */
-
 
     pthread_create(&gui, NULL, gui_setup, (void*)&params);
 
@@ -191,7 +180,7 @@ int main(int argc , char *argv[])
     if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
-        pthread_create(&writer, NULL, file_writer, (void*)&params);
+    pthread_create(&writer, NULL, file_writer, (void*)&params);
     
 
     while(program_terminate != 1){
@@ -199,6 +188,7 @@ int main(int argc , char *argv[])
             read_file = 0;
             pause_output = 1;
             reset_queue();
+            reset_package_order();
             open_file_input(params, &filename[0]);
         }
         else if(start == 1 && receive != 1){
@@ -215,7 +205,7 @@ int main(int argc , char *argv[])
         pthread_join(writer, NULL);
     pthread_join(gui, NULL);
 
-    //free_queue();
+    free_queue();
 
 	return 0;
 }

@@ -89,3 +89,8 @@ void *output_package(void *args){
         }
     }
 }
+
+void reset_package_order(){
+    check_bpm = -1;
+    check_packet_num = -1;
+}
