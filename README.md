@@ -22,7 +22,7 @@ The server will continue to send th packets until all packets are sent or the pr
 
 The client has a similar set of parameters as the server with an addition of a couple more arguments:
 
-* ***queue_size*** - size of the buffer used to receive packets into (limited from **100.000** to **100.000.000**)
+* ***queue_size*** - size of the buffer used to receive packets into (limited from **200.000** to **100.000.000**)
 * ***file_entries*** - number of entries in each file when saving (limited from **500** to **1000**)
 * ***ip*** - the ip address of the device to connect to
 * ***port*** - the port of the device to connect to
@@ -44,6 +44,8 @@ Once the data is aquired it is displayed in the GUI. When the graph is full, we 
 - if reading from file the next 500 values are aquired from the last aquired value
 - if reading from device the values are aquired from the last received value regardles of how many samples have arrived between
 
+The client will output at the end the time running, packages aquired, packages per second and how many errors were in the order of packages.
+
 ## Compiling
 
 ### Server
@@ -58,4 +60,4 @@ To compile the server move to the client folder and type the command:
 
     gcc *.c -fopenmp -lm -lpthread -lraylib -o client
 
-For compiling and using the client the raylib and raygui library are needed.
+For compiling and using the client the [raylib](https://github.com/raysan5/raylib) and [raygui](https://github.com/raysan5/raygui) library are needed. Raygui is already included since it's a header only library. Raylib has to be insalled separately.

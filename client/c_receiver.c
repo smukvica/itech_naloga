@@ -60,8 +60,9 @@ void *read_package(void *arguments){
             t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
             sleep(1);
-            printf("total packages:\t\t%d\ntotal time running:\t%f\npackages per second:\t%f\n", received_packages, t, 
-                                                                                                 (double)received_packages / t);
+            printf("total packages:\t\t%d\ntotal time running:\t%f\n
+                    packages per second:\t%f\n", received_packages, t, 
+                    (double)received_packages / t);
             return 0;
         }
     }

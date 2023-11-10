@@ -48,7 +48,7 @@ void print_help(){
                    "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
                    "number_of_bpm 1");
     print_argument("queue_size",
-                   "size of queue accepting new packets. limited from 100.000 to 200.000.000",
+                   "size of queue accepting new packets. limited from 200.000 to 100.000.000",
                    "queue_size 100.000");
     print_argument("file_entries",
                    "numbre of file entries in file when saving to file. limited from 500 to 10000",
@@ -91,7 +91,7 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         if(strcmp(argv[c], "queue_size") == 0){
             params->queue_size = atoi(argv[c+1]);
-            if(params->queue_size < 100000 || params->queue_size > 200000000){
+            if(params->queue_size < 200000 || params->queue_size > 100000000){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }

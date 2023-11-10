@@ -36,7 +36,8 @@ void check_package_order(parameters params, int bpm_id, int package_id){
     if(check_packet_num == -1) // no packages checked before no need to check if valid
         check_packet_num = package_id;
     else
-        if(check_packet_num + 1 != package_id && check_packet_num != 65535){ // expected value is different from actual or number is larger than max available bits
+        // expected value is different from actual or number is larger than max available bits
+        if(check_packet_num + 1 != package_id && check_packet_num != 65535){ 
             printf("zaporedje paketov napačno\n");
             if(previously_error == 0){  // first wrong package
                 previously_error = 1;

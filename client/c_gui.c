@@ -67,7 +67,11 @@ void create_texture(parameters params){
     texture_width = texture_size;
     texture_height = 500;
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
-    image = (Image){.data = texture_data, .width = texture_width, .height = texture_height, .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
+    image = (Image){.data = texture_data, 
+                    .width = texture_width, 
+                    .height = texture_height, 
+                    .mipmaps = 1, 
+                    .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
     clear_texture(params);
     texture = LoadTextureFromImage(image);
 }
@@ -95,7 +99,8 @@ void create_image_from_data(char *data, parameters params){
             // copy data to out
             memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
             // calculate height offset given current field num (i) and out value
-            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1]) * (500.0 / (float)params.number_of_fields)); 
+            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])
+                                                               * (500.0 / (float)params.number_of_fields)); 
             // set texture data value to black where sample is located
             texture_data[texture_width * (height_offset + i * 500 / params.number_of_fields) + number_of_samples] = 0;
         }
@@ -433,7 +438,7 @@ void *gui_setup(void *args){
         }
         if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 500, 1000, variables[4])) variables[4] = !variables[4];
         if (GuiDropdownBox((Rectangle){ 10, 145, 100, 20 }, dropdown_num_bpm_options, &dropdown_num_bpm_value, variables[3])) variables[3] = !variables[3];
-        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 100000, 200000000, variables[2])) variables[2] = !variables[2];
+        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 200000, 100000000, variables[2])) variables[2] = !variables[2];
         if (GuiDropdownBox((Rectangle){ 10, 65, 100, 20 }, dropdown_size_fields_options, &dropdown_size_field_value, variables[1])) variables[1] = !variables[1];
         if (GuiDropdownBox((Rectangle){ 10, 25, 100, 20}, dropdown_num_fields_options, &dropdown_num_fields_value, variables[0])) variables[0] = !variables[0];
 
