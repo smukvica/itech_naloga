@@ -15,20 +15,17 @@
 extern int program_terminate;
 
 void *read_package(void *arguments){
+    parameters *params = arguments;
     int socket_desc;
 	struct sockaddr_in server;
+    char server_reply[params->number_of_fields * params->size_of_field + 4];
 	
-
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_desc == -1)
 	{
 		printf("Could not create socket");
         exit(1);
 	}
-
-    parameters *params = arguments;
-
-    char server_reply[params->num_of_fields * params->size_of_field + 4];
 
 	server.sin_addr.s_addr = inet_addr(params->ip);
 	server.sin_family = AF_INET;
@@ -41,21 +38,24 @@ void *read_package(void *arguments){
 		exit(1);
 	}
     
+    // count pacages received
     int received_packages = 0;
-
+    // measure time taken
     double t = omp_get_wtime();
 
     while(1){
-        int ret = recv(socket_desc, &server_reply, params->num_of_fields * params->size_of_field + 4, 0);
+        // try to receive a package
+        int ret = recv(socket_desc, &server_reply, params->number_of_fields * params->size_of_field + 4, 0);
         if( ret < 0){
             puts("recv failed");
             return 0;
         }
+        // received something
         if (ret != 0){
             received_packages++;
             write_to_queue(server_reply, 1, RECEIVER, *params);
         }
-
+        // signal to close the client or received nothing (server close)
         if(program_terminate == 1 || ret == 0){
             t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
@@ -64,6 +64,5 @@ void *read_package(void *arguments){
                                                                                                  (double)received_packages / t);
             return 0;
         }
-        sleep(0);
     }
 }

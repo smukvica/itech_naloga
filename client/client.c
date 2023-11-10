@@ -26,10 +26,12 @@ int pause_output = 0;
 
 char filename[25];
 
+// prints argument description using a set format
 void print_argument(const char *arg, const char *explain, const char *usage){
     printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
 }
 
+// prints all argument descriptions
 void print_help(){
     printf("Help\n");
     printf("arguments:\n");
@@ -46,11 +48,11 @@ void print_help(){
                    "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
                    "number_of_bpm 1");
     print_argument("queue_size",
-                   "size of queue accepting new packets. limited from 100.000 to 100.000.000",
-                   "queue_size 100");
+                   "size of queue accepting new packets. limited from 100.000 to 200.000.000",
+                   "queue_size 100.000");
     print_argument("file_entries",
-                   "numbre of file entries in file when saving to file. limited from 100 to 10000",
-                   "file_entries 100");
+                   "numbre of file entries in file when saving to file. limited from 500 to 10000",
+                   "file_entries 500");
     print_argument("ip",
                    "set the ip of machine to connect to",
                    "ip 127.0.0.1");
@@ -69,12 +71,13 @@ void print_help(){
     printf("at the end of all commands write the names of the data fields in order\n");
 }
 
+// reads arguments into parameters
 int read_arguments(int argc, char *argv[], parameters *params){
     int c = 1;
-    while(c < argc - params->num_of_fields){
+    while(c < argc - params->number_of_fields){
         if(strcmp(argv[c], "number_of_fields") == 0){
-            params->num_of_fields = atoi(argv[c+1]);
-            if(params->num_of_fields < 1 || params->num_of_fields > 10){
+            params->number_of_fields = atoi(argv[c+1]);
+            if(params->number_of_fields < 1 || params->number_of_fields > 10){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
@@ -88,7 +91,7 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         if(strcmp(argv[c], "queue_size") == 0){
             params->queue_size = atoi(argv[c+1]);
-            if(params->queue_size < 100000 || params->queue_size > 100000000){
+            if(params->queue_size < 100000 || params->queue_size > 200000000){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
@@ -120,25 +123,31 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         c += 2;
     }
-    for(int k = 0; k < params->num_of_fields; k++){
-        if(strlen(argv[c+k]) >= 32)
-            argv[c+k][32] = '\0';
-        strcpy(params->names[k], argv[c+k]);
-    }
+    if(argc >= c + params->number_of_fields)
+        for(int k = 0; k < params->number_of_fields; k++){
+            if(strlen(argv[c+k]) >= 32)
+                argv[c+k][32] = '\0';
+            strcpy(params->names[k], argv[c+k]);
+        }
+    else
+        printf("Not enough names parameters check again.\n");
 }
 
 void open_file_input(parameters params, char *filename){
     load_params(&params);
-    file_reader(filename, params);
+    
 }
 
 int main(int argc , char *argv[])
 {
+    // variable preventing from creating multiple receiver threads
+    int receive = 0;
+    // default setup for parameters
     parameters params = {.queue_size = 100,
                          .number_of_packets = 1000,
                          .number_of_bpm = 1,
                          .file_entries = 100,
-                         .num_of_fields = 3,
+                         .number_of_fields = 3,
                          .size_of_field = 4,
                          .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
                          .file_write = 1,
@@ -146,22 +155,20 @@ int main(int argc , char *argv[])
                          .port = 8888,
                          .ip = "127.0.0.1"};
 
+    load_params(&params);
+    // if argument is to read file 
     if(strcmp(argv[1], "read_file") == 0){
-        open_file_input(params, argv[2]);
-        return 0;
-    }
-
-    if(strcmp(argv[1], "help") == 0){
+        strcpy(filename, argv[2]);
+    } else if(strcmp(argv[1], "help") == 0){  // argument to print help
         print_help();
         return 0;
-    }
-
-    if(read_arguments(argc, argv, &params) == 1)
+    }else if(read_arguments(argc, argv, &params) == 1) // reads other arguments
         return 1;
 
 
     pthread_create(&gui, NULL, gui_setup, (void*)&params);
 
+    // wait for gui to setup parameters
     while(setup_complete == 0 && read_file == 0){
         sleep(0);
         if(program_terminate == 1){
@@ -174,13 +181,12 @@ int main(int argc , char *argv[])
 
     setup_queue(params);
 
-    int receive = 0;
-
     
+
     if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
-    pthread_create(&writer, NULL, file_writer, (void*)&params);
+        pthread_create(&writer, NULL, file_writer, (void*)&params);
     
 
     while(program_terminate != 1){
@@ -189,7 +195,7 @@ int main(int argc , char *argv[])
             pause_output = 1;
             reset_queue();
             reset_package_order();
-            open_file_input(params, &filename[0]);
+            file_reader(&filename[0], params);
         }
         else if(start == 1 && receive != 1){
             pthread_create(&receiver, NULL, read_package, (void*)&params);

@@ -8,33 +8,37 @@
 
 extern int program_terminate;
 
+// saves parameters to file
 void save_params(parameters params){
     FILE *f;
     f = fopen("params.bin", "wb");
-
     fwrite(&params, sizeof(parameters), 1, f);
     fclose(f);
 }
 
+// loads parameters from file
 void load_params(parameters *params){
     FILE *f;
     f = fopen("params.bin", "rb");
-    fread(params, sizeof(parameters), 1, f);
-
-    fclose(f);
-
-    //params->queue_size = params->file_entries;
+    // if file doesn't exist don't read
+    if(f != NULL){
+        fread(params, sizeof(parameters), 1, f);
+        fclose(f);
+    }
 }
 
+// writer thread function
 void *file_writer(void *args){
     FILE *f;
     parameters params = *(parameters *)args;
-    char filename[20];
-    int file_num = 0;
-    char data[(params.num_of_fields * params.size_of_field + 4) * params.file_entries];
+    char filename[20];  // save file
+    int file_num = 0;   // current file number
+    char data[(params.number_of_fields * params.size_of_field + 4) * params.file_entries];
     while(1){
+        // gets data from queue
         int ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
         
+        // if no data was aquired keep trying
         while(ret){
             ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
             if(program_terminate == 1){
@@ -43,23 +47,26 @@ void *file_writer(void *args){
             }
             sleep(0);
         }
-
+        // data aquired set filename, open file and write to it
         sprintf(filename, "file_%05d.bin", file_num);
         f = fopen(filename,"wb");
-        fwrite(data, (sizeof(char) * params.num_of_fields * params.size_of_field + 4), params.file_entries, f);
+        fwrite(data, (sizeof(char) * params.number_of_fields * params.size_of_field + 4), params.file_entries, f);
         fclose(f);
 
         file_num++;
     }
 }
 
+// read from file
 void file_reader(const char *file, parameters params){
     FILE *f;
     f = fopen(file, "rb");
 
-    char buffer[(params.num_of_fields * params.size_of_field + 4) * params.file_entries];
+    char buffer[(params.number_of_fields * params.size_of_field + 4) * params.file_entries];
     
-    fread(buffer, sizeof(char) * params.num_of_fields * params.size_of_field + 4 , params.file_entries, f);
+    fread(buffer, sizeof(char) * params.number_of_fields * params.size_of_field + 4 , params.file_entries, f);
+
+    // write data to queue
     write_to_queue(&buffer[0], params.file_entries, FILEW, params);
 
     fclose(f);

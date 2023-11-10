@@ -13,35 +13,48 @@ int reader_index[4] = {0, 0, 0, 0};
 
 sem_t semaphore_q;
 
+
+// writes data to queue - only writer thread and receiver thread write (not at same time)
 void write_to_queue(char *data, int size, int id, parameters params){
-    memcpy(queue + writer_index % params.queue_size * (params.num_of_fields * params.size_of_field + 4),
-            data, (params.num_of_fields * params.size_of_field + 4) * size);
+    // copy data to queue
+    memcpy(queue + writer_index % params.queue_size * (params.number_of_fields * params.size_of_field + 4),
+            data, (params.number_of_fields * params.size_of_field + 4) * size);
+    // semaphore to avoid multiple access to queue index
     sem_wait(&semaphore_q);
-    writer_index += size;
-    if(writer_index >= INT_MAX)
+    writer_index += size;   // set writer index forward
+    if(writer_index >= INT_MAX) // keep it in range of max value
     writer_index %= params.queue_size;
     sem_post(&semaphore_q);
 }
 
-int get_from_queue(char *data, int size, int id, parameters params){ // return 1 if not cool
+// gets data from queue
+int get_from_queue(char *data, int size, int id, parameters params){
+    // keep if we can get data from queue
     int can_write = 0;
 
     sem_wait(&semaphore_q);
+    // check if indices are valid
     if(reader_index[id] + size <= writer_index) can_write = 1;
     sem_post(&semaphore_q);
 
+    // we can get data
     if(can_write){
-        memcpy(data, queue + (reader_index[id] % params.queue_size) * (params.num_of_fields * params.size_of_field + 4),
-               (params.num_of_fields * params.size_of_field + 4) * size);
+        // copy data
+        memcpy(data, queue + (reader_index[id] % params.queue_size) * (params.number_of_fields * params.size_of_field + 4),
+               (params.number_of_fields * params.size_of_field + 4) * size);
+        // update index
         reader_index[id] += size;
+        // keep index in range
         if(reader_index[id] >= INT_MAX) reader_index[id] %= params.queue_size;
+        // data copy successful return 0
         return 0;
     }
+    // returns 1 if data copy wasn't possible
     return 1;
 }
 
 void setup_queue(parameters params){
-    queue = malloc((sizeof(char) * params.num_of_fields * params.size_of_field + 4) * params.queue_size);
+    queue = malloc((sizeof(char) * params.number_of_fields * params.size_of_field + 4) * params.queue_size);
 
     sem_init(&semaphore_q, 0, 1);
 }
@@ -52,6 +65,7 @@ void free_queue(){
     sem_destroy(&semaphore_q);
 }
 
+// resets to beginning when reading multiple files
 void reset_queue(){
     writer_index = 0;
     reader_index[0] = 0;
@@ -60,6 +74,7 @@ void reset_queue(){
     reader_index[3] = 0;
 }
 
+// updates the queue index to most recent entry - only GUI usage
 void update_queue_index(int id){
     sem_wait(&semaphore_q);
     reader_index[id] = writer_index;

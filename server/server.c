@@ -27,11 +27,13 @@ void create_byte(int num, char *data){
     memcpy(data, &out, sizeof(char) * size_of_field);
 }
 
+// creates a data packet
 void create_packet(char *packet){
     char fields[num_of_fields * size_of_field];
 
     unsigned int status = 0;
 
+    // sets status bits
     status |= packets_sent << 16;
     status |= (char)current_bpm << 2;
 
@@ -40,14 +42,18 @@ void create_packet(char *packet){
 
     char data[size_of_field];
 
+    // for each field create data and copies to fields
     for(int i = 0; i < num_of_fields; i++){
         create_byte(packets_sent, data);
         memcpy(fields + i * size_of_field, &data, sizeof(char) * size_of_field);
     }
+    // copies status field at the end
     memcpy(fields + num_of_fields * size_of_field, &status, sizeof(int));
 
+    // copies the final fields to packet to send out
     memcpy(packet, fields, num_of_fields*size_of_field + 4);
 
+    // prints to std out
     unsigned int out = 0;
     for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
         memcpy(&out, &fields[i], sizeof(char) * size_of_field);
@@ -156,14 +162,18 @@ int main(int argc , char *argv[])
 
     double t = omp_get_wtime();
 
+    // keeping frequency of packets per second
     double time_between_packets = 1.0 / send_rate;
     double current_time_between_packets = 0.0;
     double loop_time = 0.0;
 
+    // sends out all packets
     while(packets_sent < number_of_packets){
+        // checks time after last package sent
         loop_time = omp_get_wtime() - t;
         t += loop_time;
         current_time_between_packets += loop_time;
+        // if time is more than frequency of packets send a new one
         if(current_time_between_packets >= time_between_packets){
             current_time_between_packets = 0.0;
 

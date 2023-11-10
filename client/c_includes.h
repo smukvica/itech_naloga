@@ -5,7 +5,7 @@ typedef struct parameters{
     int number_of_packets;
     int number_of_bpm;
     int file_entries;
-    int num_of_fields;
+    int number_of_fields;
     int size_of_field;
     char names[10][32];
     int file_write;
