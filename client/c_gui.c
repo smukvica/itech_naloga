@@ -25,7 +25,8 @@ int port_value = 8888;
 int file_entries_value = 100;
 
 // size of generated texture, samples taken each timestep
-int texture_size = 1000;
+int texture_size = 500;
+int screen_size = 500;
 int samples = 1;
 // control if new values are being drawn on screen or not
 bool refresh = true;
@@ -34,7 +35,7 @@ extern int program_terminate;
 extern int setup_complete;
 extern char filename[25];
 extern int read_file;
-extern int start;
+extern int start_stop;
 int file_reading_mode = 0;
 
 // texture data
@@ -51,28 +52,36 @@ int texture_offset = 0;
 // limits given for different sizes of fields
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
 
+enum mode {passive, receiver, file};
+enum mode current_mode = passive;
+
 // clears texture to default state - white with black lines dividing the fields
 void clear_texture(parameters params){
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
+
             if(j%(500 / params.number_of_fields) == 0 && j != 0)
-                texture_data[j * texture_width + i] = 0;
+                texture_data[j * texture_width + i] = 127;
             else
                 texture_data[j * texture_width + i] = 255;
         }
     }
+    number_of_samples = 0;
 }
 
 void create_texture(parameters params){
     texture_width = texture_size;
-    texture_height = 500;
+    texture_height = screen_size;
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
     image = (Image){.data = texture_data, 
                     .width = texture_width, 
                     .height = texture_height, 
                     .mipmaps = 1, 
                     .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
-    clear_texture(params);
+    //clear_texture(params);
+    for(int i = 0; i < texture_height * texture_width; i++){
+        texture_data[i] = 255;
+    }
     texture = LoadTextureFromImage(image);
 }
 
@@ -83,10 +92,9 @@ void delete_texture(){
 
 void create_image_from_data(char *data, parameters params){
     // if samples are more than screen size stop updating texture
-    if(number_of_samples >= 500){
-        number_of_samples = 0;
-        texture_offset = 0;
+    if(number_of_samples >= texture_size){
         refresh = false;
+        current_mode = passive;
         return;
     }
     // loop through fetched samples and draw on texture
@@ -97,12 +105,19 @@ void create_image_from_data(char *data, parameters params){
         unsigned int out = 0;
         for(int i = 0; i < params.number_of_fields; i++){
             // copy data to out
-            memcpy(&out, &data[f + i * params.size_of_field], sizeof(char) * params.size_of_field);
+            memcpy(&out, 
+                   &data[f + i * params.size_of_field], 
+                   sizeof(char) * params.size_of_field);
             // calculate height offset given current field num (i) and out value
-            unsigned int height_offset = 100 - (unsigned int)(((float)out/(float)limits_of_data[params.size_of_field - 1])
-                                                               * (500.0 / (float)params.number_of_fields)); 
+            unsigned int height_offset = texture_size / 
+                                         params.number_of_fields - 
+                                         (unsigned int)(((float)out / 
+                                         (float)limits_of_data[params.size_of_field - 1]) * 
+                                         (texture_size / (float)params.number_of_fields)); 
             // set texture data value to black where sample is located
-            texture_data[texture_width * (height_offset + i * 500 / params.number_of_fields) + number_of_samples] = 0;
+            texture_data[texture_width * 
+                         (height_offset + i * texture_size / params.number_of_fields) + 
+                         number_of_samples] = 0;
         }
         number_of_samples += 1;
     }
@@ -385,21 +400,13 @@ void *gui_setup(void *args){
     bool name_variables[10] = {false};
     bool ip_vars[4] = {false};
 
-    // temporary variables to store parameters while editing
-    int ip[4];
-    dropdown_num_bpm_value = get_index_of_value(params->number_of_bpm, dropdown_num_bpm_options);
-    dropdown_num_fields_value = params->number_of_fields - 1;
-    dropdown_size_field_value = get_index_of_value(params->size_of_field, dropdown_size_fields_options);
-    variables[8] = params->std_output;
-    variables[7] = params->file_write;
-    queue_size_value = params->queue_size;
-    file_entries_value = params->file_entries;
-    port_value = params->port;
-    sscanf(params->ip, "%d.%d.%d.%d", &ip[0], &ip[1], &ip[2], &ip[3]);
+    bool can_change = true;
 	//--------------------------------------------------------------------------------------
 
     // data field to store samples
     char data[(params->size_of_field * params->number_of_fields + 4) * samples];
+
+    create_texture(*params);
 
 	// Main loop
 	while (!WindowShouldClose())
@@ -417,10 +424,10 @@ void *gui_setup(void *args){
             }
         }
 
-        DrawTexture(texture, 350 - texture_offset, 0, WHITE);
+        DrawTexture(texture, 350, 0, WHITE);
 
         ClearBackground(WHITE);
-        DrawRectangle(0, 0, 250, params->number_of_fields * 100, RAYWHITE);
+        DrawRectangle(0, 0, 250, screen_size, RAYWHITE);
 
         DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
         DrawText("size_of_field", 10, 50, 10, DARKGRAY);
@@ -430,74 +437,68 @@ void *gui_setup(void *args){
         DrawText("ip", 10, 210, 10, DARKGRAY);
         DrawText("port", 10, 250, 10, DARKGRAY);
         DrawText("file name", 130, 300, 10, DARKGRAY);
-        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, " write to screen", &variables[8]);
-        GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, " write to file", &variables[7]);
-        if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, NULL, &port_value, 0, 1000000, variables[6])) variables[6] = !variables[6];
+        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, " write to screen", &params->std_output);
+        GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, " write to file", &params->file_write);
+        if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, NULL, &params->port, 
+                      0, 1000000, variables[6] & can_change)) variables[6] = !variables[6];
         for(int i = 0; i < 4; i++){
-            if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &ip[i], 0, 255, ip_vars[i])) ip_vars[i] = !ip_vars[i];
+            if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &params->ip[i], 
+                           0, 255, ip_vars[i] & can_change)) ip_vars[i] = !ip_vars[i];
         }
-        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &file_entries_value, 500, 1000, variables[4])) variables[4] = !variables[4];
-        if (GuiDropdownBox((Rectangle){ 10, 145, 100, 20 }, dropdown_num_bpm_options, &dropdown_num_bpm_value, variables[3])) variables[3] = !variables[3];
-        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &queue_size_value, 200000, 100000000, variables[2])) variables[2] = !variables[2];
-        if (GuiDropdownBox((Rectangle){ 10, 65, 100, 20 }, dropdown_size_fields_options, &dropdown_size_field_value, variables[1])) variables[1] = !variables[1];
-        if (GuiDropdownBox((Rectangle){ 10, 25, 100, 20}, dropdown_num_fields_options, &dropdown_num_fields_value, variables[0])) variables[0] = !variables[0];
+        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &params->file_entries,
+             500, 1000, variables[4] & can_change)) variables[4] = !variables[4];
+        if (GuiIntBox((Rectangle){ 10, 145, 100, 20 }, NULL, &params->number_of_bpm,
+             1, 4, variables[3] & can_change)) variables[3] = !variables[3];
+        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &params->queue_size, 
+             200000, 100000000, variables[2] & can_change)) variables[2] = !variables[2];
+        if (GuiIntBox((Rectangle){ 10, 65, 100, 20 }, NULL, &params->size_of_field,
+             1, 4, variables[1] & can_change)) variables[1] = !variables[1];
+        if (GuiIntBox((Rectangle){ 10, 25, 100, 20}, NULL, &params->number_of_fields, 
+             1, 10, variables[0] & can_change)) variables[0] = !variables[0];
 
         DrawText("Field names", 130, 10, 10, DARKGRAY);
-        for(int i = 0; i < dropdown_num_fields_value + 1; i++){
-		    if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, NULL, params->names[i], name_variables[i])) name_variables[i] = !name_variables[i];
+        for(int i = 0; i < params->number_of_fields && i < 10; i++){
+		    if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, NULL, params->names[i], 
+                name_variables[i] & can_change)) name_variables[i] = !name_variables[i];
             if(strlen(params->names[i]) >= 32)
                 params->names[i][32] = '\0';
         }
 
-        if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], variables[9])) variables[9] = !variables[9];
+        if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], 
+            variables[9] && can_change)) variables[9] = !variables[9];
 
         // save temporary variables to parameters struct
-		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Setup") && setup_complete == 0)
+		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && current_mode == passive)
 		{
-            sprintf(params->ip, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-            params->size_of_field = (int)(dropdown_size_fields_options[dropdown_size_field_value*2] - '0');
-            params->number_of_bpm = (int)(dropdown_num_bpm_options[dropdown_num_bpm_value*2] - '0');
-            params->number_of_fields = dropdown_num_fields_value + 1;
-
-            params->port = port_value;
-            params->file_entries = file_entries_value;
-            params->queue_size = queue_size_value;
-
-            if(variables[7] == true)
-                params->file_write = 1;
-            else
-                params->file_write = 0;
-
-            if(variables[8] == true)
-                params->std_output = 1;
-            else
-                params->std_output = 0;
             setup_complete = 1;
-            create_texture(*params);
+            current_mode = receiver;
+            can_change = false;
+            clear_texture(*params);
+            start_stop = 1;
 		}
 
-        // starts the thread listening for packets
-        if(setup_complete)
-            if (GuiButton((Rectangle){ 10, 450, 50, 20 }, "Start") && read_file != 1 && file_reading_mode != 1)
-            {
-                start = 1;
-                file_reading_mode = -1;
-            }
+        if (GuiButton((Rectangle){ 10, 450, 50, 20 }, "Stop") && current_mode == receiver)
+        {
+            current_mode = passive;
+            can_change = true;
+            start_stop = 0;
+        }
 
         // sets the client to read from file
-        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && setup_complete == 1 && start != 1 && file_reading_mode != -1)
+        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && current_mode == passive)
 		{
             read_file = 1;
             refresh = true;
             file_reading_mode = 1;
             clear_texture(*params);
+            current_mode = file;
 		}
 
-        DrawRectangle(250, 0, 100, 500, RAYWHITE);
+        DrawRectangle(250, 0, 100, screen_size, RAYWHITE);
 
         if(setup_complete == 1){
             for(int i = 0; i < params->number_of_fields; i++){
-                DrawText(params->names[i], 260, 10 + i * 500 / params->number_of_fields, 10, DARKGRAY);
+                DrawText(params->names[i], 260, 10 + i * screen_size / params->number_of_fields, 10, DARKGRAY);
             }
             
             if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){

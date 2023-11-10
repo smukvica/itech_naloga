@@ -61,6 +61,10 @@ void *file_writer(void *args){
 void file_reader(const char *file, parameters params){
     FILE *f;
     f = fopen(file, "rb");
+    if(f == NULL){
+        printf("no file found\n");
+        return;
+    }
 
     char buffer[(params.number_of_fields * params.size_of_field + 4) * params.file_entries];
     

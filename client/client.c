@@ -21,7 +21,7 @@ pthread_t gui;
 int program_terminate = 0;
 int setup_complete = 0;
 int read_file = 0;
-int start = 0;
+int start_stop = 0;
 int pause_output = 0;
 
 char filename[25];
@@ -74,7 +74,9 @@ void print_help(){
 // reads arguments into parameters
 int read_arguments(int argc, char *argv[], parameters *params){
     int c = 1;
-    while(c < argc - params->number_of_fields){
+    printf("%d\n", c);
+    while(c < argc){
+        
         if(strcmp(argv[c], "number_of_fields") == 0){
             params->number_of_fields = atoi(argv[c+1]);
             if(params->number_of_fields < 1 || params->number_of_fields > 10){
@@ -110,16 +112,16 @@ int read_arguments(int argc, char *argv[], parameters *params){
             params->file_entries = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "ip") == 0){
-            strcpy(params->ip, argv[c+1]);
+            sscanf(argv[c+1], "%d.%d.%d.%d", &params->ip[0], &params->ip[1], &params->ip[2], &params->ip[3]);
         }
         if(strcmp(argv[c], "port") == 0){
             params->port = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "writer") == 0){
-            params->file_write = atoi(argv[c+1]);
+            params->file_write = atoi(argv[c+1]) == 1 ? true : false;
         }
         if(strcmp(argv[c], "output") == 0){
-            params->std_output = atoi(argv[c+1]);
+            params->std_output = atoi(argv[c+1]) == 1 ? true : false;
         }
         c += 2;
     }
@@ -150,26 +152,28 @@ int main(int argc , char *argv[])
                          .number_of_fields = 3,
                          .size_of_field = 4,
                          .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
-                         .file_write = 1,
-                         .std_output = 1,
+                         .file_write = true,
+                         .std_output = true,
                          .port = 8888,
-                         .ip = "127.0.0.1"};
+                         .ip = {127, 0, 0, 1}};
 
-    load_params(&params);
+    //load_params(&params);
     // if argument is to read file 
-    if(strcmp(argv[1], "read_file") == 0){
-        strcpy(filename, argv[2]);
-    } else if(strcmp(argv[1], "help") == 0){  // argument to print help
-        print_help();
-        return 0;
-    }else if(read_arguments(argc, argv, &params) == 1) // reads other arguments
-        return 1;
+    if(argc > 1){
+        if(strcmp(argv[1], "read_file") == 0){
+            strcpy(filename, argv[2]);
+        } else if(strcmp(argv[1], "help") == 0){  // argument to print help
+            print_help();
+            return 0;
+        }else if(read_arguments(argc, argv, &params) == 1) // reads other arguments
+            return 1;
+    }
 
 
     pthread_create(&gui, NULL, gui_setup, (void*)&params);
 
     // wait for gui to setup parameters
-    while(setup_complete == 0 && read_file == 0){
+    while(setup_complete == 0){
         sleep(0);
         if(program_terminate == 1){
             pthread_join(gui, NULL);
@@ -181,8 +185,7 @@ int main(int argc , char *argv[])
 
     setup_queue(params);
 
-    
-
+    pthread_create(&receiver, NULL, read_package, (void*)&params);
     if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
@@ -197,19 +200,22 @@ int main(int argc , char *argv[])
             reset_package_order();
             file_reader(&filename[0], params);
         }
-        else if(start == 1 && receive != 1){
-            pthread_create(&receiver, NULL, read_package, (void*)&params);
+        if(start_stop == 1 && receive == 0){
+            reset_queue();
+            reset_package_order();
             receive = 1;
+        }
+        if(start_stop == 0 && receive == 1){
+            receive = 0;
         }
         sleep(0);
     }
-    if(receive == 1)
-        pthread_join(receiver, NULL);
     if(params.std_output)
         pthread_join(output, NULL);
     if(params.file_write)
         pthread_join(writer, NULL);
     pthread_join(gui, NULL);
+    pthread_join(receiver, NULL);
 
     free_queue();
 

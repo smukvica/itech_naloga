@@ -1,4 +1,4 @@
-# itech naloga
+# [itech naloga](https://github.com/smukvica/itech_naloga)
 
 Client to read packets from network device and display, write and save the data. Also a simple simulator was created to simulate the device so the device isn't needed.
 

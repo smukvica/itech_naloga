@@ -17,8 +17,10 @@ sem_t semaphore_q;
 // writes data to queue - only writer thread and receiver thread write (not at same time)
 void write_to_queue(char *data, int size, int id, parameters params){
     // copy data to queue
-    memcpy(queue + writer_index % params.queue_size * (params.number_of_fields * params.size_of_field + 4),
-            data, (params.number_of_fields * params.size_of_field + 4) * size);
+    memcpy(queue + writer_index % params.queue_size * 
+                (params.number_of_fields * params.size_of_field + 4),
+           data, 
+           (params.number_of_fields * params.size_of_field + 4) * size);
     // semaphore to avoid multiple access to queue index
     sem_wait(&semaphore_q);
     writer_index += size;   // set writer index forward
@@ -40,7 +42,9 @@ int get_from_queue(char *data, int size, int id, parameters params){
     // we can get data
     if(can_write){
         // copy data
-        memcpy(data, queue + (reader_index[id] % params.queue_size) * (params.number_of_fields * params.size_of_field + 4),
+        memcpy(data, 
+               queue + (reader_index[id] % params.queue_size) * 
+                       (params.number_of_fields * params.size_of_field + 4),
                (params.number_of_fields * params.size_of_field + 4) * size);
         // update index
         reader_index[id] += size;
@@ -54,7 +58,10 @@ int get_from_queue(char *data, int size, int id, parameters params){
 }
 
 void setup_queue(parameters params){
-    queue = malloc((sizeof(char) * params.number_of_fields * params.size_of_field + 4) * params.queue_size);
+    queue = malloc((sizeof(char) * 
+                    params.number_of_fields * 
+                    params.size_of_field + 4) * 
+                    params.queue_size);
 
     sem_init(&semaphore_q, 0, 1);
 }

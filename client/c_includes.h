@@ -1,4 +1,5 @@
 #pragma once
+#include <stdbool.h>
 
 typedef struct parameters{
     int queue_size;
@@ -8,8 +9,8 @@ typedef struct parameters{
     int number_of_fields;
     int size_of_field;
     char names[10][32];
-    int file_write;
-    int std_output;
+    bool file_write;
+    bool std_output;
     int port;
-    char ip[15];
+    int ip[4];
 }parameters;
