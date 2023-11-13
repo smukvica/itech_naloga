@@ -25,6 +25,7 @@ extern int setup_complete;
 extern char filename[100];
 extern int read_file;
 extern int start_stop;
+extern const limits param_limits;
 
 // texture data
 Image image;
@@ -418,70 +419,100 @@ void *gui_setup(void *args){
 
         DrawTexture(texture, 350, 0, WHITE);
 
-        ClearBackground(WHITE);
-        DrawRectangle(0, 0, 250, screen_size, RAYWHITE);
-
-        DrawText("Current Mode: ", 10, 450, 10, DARKGRAY);
-        switch (current_mode)
+        // input fields
         {
-        case passive:
-            DrawText("Waiting", 10, 470, 10, DARKGRAY);
-            break;
-        case receiver:
-            DrawText("Receiving data", 10, 470, 10, DARKGRAY);
-            break;
-        default:
-            DrawText("Reading data", 10, 470, 10, DARKGRAY);
-            break;
+            ClearBackground(WHITE);
+            DrawRectangle(0, 0, 250, screen_size, RAYWHITE);
+
+            DrawText("Current Mode: ", 10, 450, 10, DARKGRAY);
+            switch (current_mode)
+            {
+            case passive:
+                DrawText("Waiting", 10, 470, 10, DARKGRAY);
+                break;
+            case receiver:
+                DrawText("Receiving data", 10, 470, 10, DARKGRAY);
+                break;
+            default:
+                DrawText("Reading data", 10, 470, 10, DARKGRAY);
+                break;
+            }
+
+            DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
+            DrawText("size_of_field", 10, 50, 10, DARKGRAY);
+            DrawText("queue_size", 10, 90, 10, DARKGRAY);
+            DrawText("number_of_bpm", 10, 130, 10, DARKGRAY);
+            DrawText("file_entries", 10, 170, 10, DARKGRAY);
+            DrawText("ip", 10, 210, 10, DARKGRAY);
+            DrawText("port", 10, 250, 10, DARKGRAY);
+            DrawText("file name", 130, 300, 10, DARKGRAY);
+            GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, 
+                        " write to screen", &params->std_output);
+            GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, 
+                        " write to file", &params->file_write);
+            if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
+                        NULL, 
+                        &params->port, 
+                        0, 
+                        1000000, 
+                        variables[6] & can_change)) variables[6] = !variables[6];
+            for(int i = 0; i < 4; i++){
+                if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, 
+                            NULL, 
+                            &params->ip[i], 
+                            0, 
+                            255, 
+                            ip_vars[i] & can_change)) ip_vars[i] = !ip_vars[i];
+            }
+            if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, 
+                NULL, 
+                &params->file_entries,
+                param_limits.file_entries[0], 
+                param_limits.file_entries[1], 
+                variables[4] & can_change)) variables[4] = !variables[4];
+            if (GuiIntBox((Rectangle){ 10, 145, 100, 20 }, 
+                NULL, 
+                &params->number_of_bpm,
+                param_limits.number_of_bpm[0], 
+                param_limits.number_of_bpm[1], 
+                variables[3] & can_change)) variables[3] = !variables[3];
+            if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, 
+                NULL, 
+                &params->queue_size, 
+                param_limits.queue_size[0], 
+                param_limits.queue_size[1], 
+                variables[2] & can_change)) variables[2] = !variables[2];
+            if (GuiIntBox((Rectangle){ 10, 65, 100, 20 },
+                NULL, 
+                &params->size_of_field,
+                param_limits.size_of_field[0], 
+                param_limits.size_of_field[1], 
+                variables[1] & can_change)) variables[1] = !variables[1];
+            if (GuiIntBox((Rectangle){ 10, 25, 100, 20}, 
+                NULL, 
+                &params->number_of_fields, 
+                param_limits.number_of_fields[0], 
+                param_limits.number_of_fields[1], 
+                variables[0] & can_change)) variables[0] = !variables[0];
+
+            DrawText("Field names", 130, 10, 10, DARKGRAY);
+            for(int i = 0; i < params->number_of_fields && i < 10; i++){
+                if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, 
+                    NULL, params->names[i], 
+                    name_variables[i] & can_change)) 
+                    name_variables[i] = !name_variables[i];
+                if(strlen(params->names[i]) >= 32)
+                    params->names[i][32] = '\0';
+            }
+
+            if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, 
+                NULL, 
+                &filename[0], 
+                variables[9] && can_change)) 
+                variables[9] = !variables[9];
         }
 
-        DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
-        DrawText("size_of_field", 10, 50, 10, DARKGRAY);
-        DrawText("queue_size", 10, 90, 10, DARKGRAY);
-        DrawText("number_of_bpm", 10, 130, 10, DARKGRAY);
-        DrawText("file_entries", 10, 170, 10, DARKGRAY);
-        DrawText("ip", 10, 210, 10, DARKGRAY);
-        DrawText("port", 10, 250, 10, DARKGRAY);
-        DrawText("file name", 130, 300, 10, DARKGRAY);
-        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, 
-                    " write to screen", &params->std_output);
-        GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, 
-                    " write to file", &params->file_write);
-        if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
-                      NULL, 
-                      &params->port, 
-                      0, 1000000, 
-                      variables[6] & can_change)) variables[6] = !variables[6];
-        for(int i = 0; i < 4; i++){
-            if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &params->ip[i], 
-                           0, 255, ip_vars[i] & can_change)) ip_vars[i] = !ip_vars[i];
-        }
-        if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, NULL, &params->file_entries,
-             500, 1000, variables[4] & can_change)) variables[4] = !variables[4];
-        if (GuiIntBox((Rectangle){ 10, 145, 100, 20 }, NULL, &params->number_of_bpm,
-             1, 4, variables[3] & can_change)) variables[3] = !variables[3];
-        if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, NULL, &params->queue_size, 
-             200000, 100000000, variables[2] & can_change)) variables[2] = !variables[2];
-        if (GuiIntBox((Rectangle){ 10, 65, 100, 20 }, NULL, &params->size_of_field,
-             1, 4, variables[1] & can_change)) variables[1] = !variables[1];
-        if (GuiIntBox((Rectangle){ 10, 25, 100, 20}, NULL, &params->number_of_fields, 
-             1, 10, variables[0] & can_change)) variables[0] = !variables[0];
 
-        DrawText("Field names", 130, 10, 10, DARKGRAY);
-        for(int i = 0; i < params->number_of_fields && i < 10; i++){
-		    if (GuiCharBox((Rectangle){ 130, 25 + i * 25, 100, 20 }, NULL, params->names[i], 
-                name_variables[i] & can_change)) name_variables[i] = !name_variables[i];
-            if(strlen(params->names[i]) >= 32)
-                params->names[i][32] = '\0';
-        }
-
-        if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, 
-            NULL, 
-            &filename[0], 
-            variables[9] && can_change)) 
-            variables[9] = !variables[9];
-
-        // save temporary variables to parameters struct
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && 
             current_mode == passive)
 		{
@@ -533,7 +564,7 @@ void *gui_setup(void *args){
 
         
 		EndDrawing();
-        //----------------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         if(current_mode != passive){
             can_change = false;
         }else{

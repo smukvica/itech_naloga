@@ -28,7 +28,7 @@ The client has a similar set of parameters as the server with an addition of a c
 * ***port*** - the port of the device to connect to
 * ***writer*** - set saving to files (**true** to save, **false** not to save)
 * ***output*** - set writing to standard out (**true** to write, **false** not to write)
-* ***folder*** - set the saving folder for files
+* ***folder*** - set the saving folder for files *ex. files/*
 
 Final *n* arguments are meant to be the names for the data fields. The names should be given as one name one argument.
 
@@ -45,7 +45,7 @@ Example of config file:
     port: 8888
     output: true
     writer: false
-    folder: files
+    folder: files/
 
 A separate argument can be used to setup the file path to read from:
 

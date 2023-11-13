@@ -10,6 +10,7 @@
 
 extern int program_terminate;
 extern char save_folder[256];
+extern const limits param_limits;
 
 // saves parameters to file
 void save_params(parameters params){
@@ -58,17 +59,20 @@ void load_params(parameters *params){
         else 
             param_error = 1;
         
-        if(params->number_of_fields < 1 || params->number_of_fields > 10){
+        if(params->number_of_fields < param_limits.number_of_fields[0] || 
+           params->number_of_fields > param_limits.number_of_fields[1]){
             param_error = 1;
         }
-        if(params->size_of_field != 1 && params->size_of_field != 2 && 
-           params->size_of_field != 4){
+        if(params->size_of_field < param_limits.size_of_field[0] ||
+           params->size_of_field > param_limits.size_of_field[1]){
             param_error = 1;
         }
-        if(params->queue_size < 200000 || params->queue_size > 100000000){
+        if(params->queue_size < param_limits.queue_size[0] || 
+           params->queue_size > param_limits.queue_size[1]){
             param_error = 1;
         }
-        if(params->number_of_bpm < 1 || params->number_of_bpm > 4){
+        if(params->number_of_bpm < param_limits.number_of_bpm[0] || 
+           params->number_of_bpm > param_limits.number_of_bpm[1]){
             param_error = 1;
         }
         if(param_error)
@@ -105,7 +109,7 @@ void *file_writer(void *args){
             sleep(0);
         }
         // data aquired set filename, open file and write to it
-        sprintf(filename, "%s/file_%05d.bin", save_folder, file_num);
+        sprintf(filename, "%sfile_%05d.bin", save_folder, file_num);
         f = fopen(filename,"wb");
         fwrite(&temp, sizeof(parameters), 1, f);
         fwrite(data, 

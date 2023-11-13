@@ -14,6 +14,15 @@
 #include "c_gui.h"
 #include "c_queue.h"
 
+const limits param_limits = {
+    .queue_size = {200000, 100000000},
+    .number_of_packets = {0, -1},
+    .number_of_bpm = {1, 4},
+    .file_entries = {500, 10000},
+    .number_of_fields = {1, 10},
+    .size_of_field = {1, 4}
+};
+
 pthread_t receiver;
 pthread_t output;
 pthread_t writer;
@@ -29,48 +38,66 @@ char filename[100];
 char save_folder[256];
 
 // prints argument description using a set format
-void print_argument(const char *arg, const char *explain, const char *usage){
-    printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
+void print_argument(const char *arg, const char *explain, const char *usage, 
+                    int limit_l, int limit_u){
+    printf("%s\n", arg);
+    printf("\t%s", explain);
+    if(limit_l != -1 && limit_u != -1)
+        printf(" limited from %d to %d.", limit_l, limit_u);
+
+    printf("\n\texample:\t%s\n", usage);
 }
 
 // prints all argument descriptions
 void print_help(){
     printf("Help\n");
     printf("arguments:\n");
+    
     print_argument("number_of_fields",
-                   "set the number of data fields in packets. limited from 1 to 10",
-                   "number_of_fields 5");
+                   "set the number of data fields in packets.",
+                   "example:\tnumber_of_fields 5\n",
+                    param_limits.number_of_fields[0],
+                    param_limits.number_of_fields[1]);
     print_argument("size_of_field",
-                   "set the size of each data field in packet. limited to 1, 2, 4",
-                   "size_of_field 4");
+                   "set the size of each data field in packet.",
+                   "size_of_field 4",
+                   param_limits.size_of_field[0],
+                   param_limits.size_of_field[1]);
     print_argument("number_of_packets",
                    "set limit of packets sent.",
-                   "number_of_packets 1000");
+                   "number_of_packets 1000", -1, -1);
     print_argument("number_of_bpm",
-                   "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
-                   "number_of_bpm 1");
+                   "set the number of bpm cards simulated.",
+                   "number_of_bpm 1",
+                   param_limits.number_of_bpm[0],
+                   param_limits.number_of_bpm[1]);
     print_argument("queue_size",
-                   "size of queue accepting new packets. limited from 200.000 to 100.000.000",
-                   "queue_size 100.000");
+                   "size of queue accepting new packets.",
+                   "queue_size 100.000",
+                   param_limits.queue_size[0],
+                   param_limits.queue_size[1]);
     print_argument("file_entries",
-                   "numbre of file entries in file when saving to file. limited from 500 to 10000",
-                   "file_entries 500");
+                   "numbre of file entries in file when saving to file.",
+                   "file_entries 500",
+                   param_limits.file_entries[0],
+                   param_limits.file_entries[1]);
     print_argument("ip",
                    "set the ip of machine to connect to",
-                   "ip 127.0.0.1");
+                   "ip 127.0.0.1", -1, -1);
     print_argument("port",
                    "set the port of the machine to connect to",
-                   "port 8888");
+                   "port 8888", -1, -1);
     print_argument("writer",
                    "set to write to file or not",
-                   "writer false");
+                   "writer false", -1, -1);
     print_argument("output",
                    "set to write to standard output or not",
-                   "output true");
+                   "output true", -1, -1);
     print_argument("read_file",
                    "read from a given file the data and print to standard out",
-                   "read_file file1.bin");
-    printf("at the end of all commands write the names of the data fields in order\n");
+                   "read_file file1.bin", -1, -1);
+    printf("at the end of all commands"
+           "write the names of the data fields in order\n");
 }
 
 // reads arguments into parameters
