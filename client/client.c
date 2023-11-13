@@ -63,10 +63,10 @@ void print_help(){
                    "port 8888");
     print_argument("writer",
                    "set to write to file or not",
-                   "writer 1");
+                   "writer false");
     print_argument("output",
                    "set to write to standard output or not",
-                   "output 1");
+                   "output true");
     print_argument("read_file",
                    "read from a given file the data and print to standard out",
                    "read_file file1.bin");
@@ -120,10 +120,20 @@ int read_arguments(int argc, char *argv[], parameters *params){
             params->port = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "writer") == 0){
-            params->file_write = atoi(argv[c+1]) == 1 ? true : false;
+            if(strcmp(argv[c+1], "true") == 0)
+                params->file_write = true;
+            else if(strcmp(argv[c+1], "false") == 0)
+                params->file_write = false;
+            else
+                printf("wrong usage of argument %s. see help\n", argv[c]);
         }
         if(strcmp(argv[c], "output") == 0){
-            params->std_output = atoi(argv[c+1]) == 1 ? true : false;
+            if(strcmp(argv[c+1], "true") == 0)
+                params->std_output = true;
+            else if(strcmp(argv[c+1], "false") == 0)
+                params->std_output = false;
+            else
+                printf("wrong usage of argument %s. see help\n", argv[c]);
         }
         if(strcmp(argv[c], "folder") == 0){
             strcpy(save_folder, argv[c+1]);

@@ -26,12 +26,26 @@ The client has a similar set of parameters as the server with an addition of a c
 * ***file_entries*** - number of entries in each file when saving (limited from **500** to **1000**)
 * ***ip*** - the ip address of the device to connect to
 * ***port*** - the port of the device to connect to
-* ***writer*** - set saving to files (**1** to save, **0** not to save)
-* ***output*** - set writing to standard out (**1** to write, **00** not to write)
+* ***writer*** - set saving to files (**true** to save, **false** not to save)
+* ***output*** - set writing to standard out (**true** to write, **false** not to write)
+* ***folder*** - set the saving folder for files
 
 Final *n* arguments are meant to be the names for the data fields. The names should be given as one name one argument.
 
-All arguments can be omitted and the default values will be used.
+All arguments can be omitted and the default values will be used. Alternatively a config file can be setup. The file is constructed by writing argument names in lines and save as *config*.
+
+Example of config file:
+
+    number_of_fields: 5
+    size_of_field: 2
+    number_of_bpm: 1
+    queue_size: 200000
+    file_entries: 1000
+    ip: 127.0.0.1
+    port: 8888
+    output: true
+    writer: false
+    folder: files
 
 A separate argument can be used to setup the file path to read from:
 

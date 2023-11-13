@@ -405,7 +405,8 @@ void *gui_setup(void *args){
         if(setup_complete && refresh == true)
         {
             if(number_of_samples == texture_size){
-                current_mode = passive;
+                if(current_mode == file)
+                    current_mode = passive;
                 number_of_samples = 0;
                 refresh = false;
             }else{
