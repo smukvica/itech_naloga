@@ -25,7 +25,6 @@ extern int setup_complete;
 extern char filename[100];
 extern int read_file;
 extern int start_stop;
-int file_reading_mode = 0;
 
 // texture data
 Image image;
@@ -36,7 +35,6 @@ int texture_height;
 
 // current number of samples in texture
 int number_of_samples = 0;
-int texture_offset = 0;
 
 // limits given for different sizes of fields
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
@@ -506,7 +504,6 @@ void *gui_setup(void *args){
 		{
             read_file = 1;
             refresh = true;
-            file_reading_mode = 1;
             current_mode = file;
             setup_complete = 1;
 		}
@@ -526,7 +523,7 @@ void *gui_setup(void *args){
                 refresh = true;
                 clear_texture(*params);
                 number_of_samples = 0;
-                if(file_reading_mode != 1)  // read file without skipping to newest
+                if(current_mode == receiver) // update index only when receiving
                     update_queue_index(GUI);
                 else
                     current_mode = file;
