@@ -14,7 +14,8 @@ int reader_index[4] = {0, 0, 0, 0};
 sem_t semaphore_q;
 
 
-// writes data to queue - only writer thread and receiver thread write (not at same time)
+// writes data to queue
+// only writer thread and receiver thread write (not at same time)
 void write_to_queue(char *data, int size, int id, parameters params){
     // copy data to queue
     memcpy(queue + writer_index % params.queue_size * 

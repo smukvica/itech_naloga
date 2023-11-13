@@ -8,6 +8,7 @@
 
 #include "c_gui.h"
 #include "c_queue.h"
+#include "c_file.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -21,7 +22,7 @@ bool refresh = true;
 
 extern int program_terminate;
 extern int setup_complete;
-extern char filename[25];
+extern char filename[100];
 extern int read_file;
 extern int start_stop;
 int file_reading_mode = 0;
@@ -255,7 +256,7 @@ int GuiIntBox(Rectangle bounds, const char* text, int* value,
 
 int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     #if !defined(RAYGUI_VALUEBOX_MAX_CHARS)
-    #define RAYGUI_VALUEBOX_MAX_CHARS  32
+    #define RAYGUI_VALUEBOX_MAX_CHARS  40
     #endif
 
     int result = 0;
@@ -296,7 +297,10 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
                 if (GetTextWidth(textValue) < bounds.width)
                 {
                     int key = GetCharPressed();
-                    if (((key >= 48) && (key <= 57)) || ((key >= 65) && (key <= 90)) || ((key >= 97) && (key <= 122)) || key == 46 || key == 95)
+                    if (((key >= 48) && (key <= 57)) ||     
+                        ((key >= 65) && (key <= 90)) || 
+                        ((key >= 97) && (key <= 122)) || 
+                        key == 46 || key == 95 || key == 47)
                     {
                         textValue[keyCount] = (char)key;
                         textValue[++keyCount] = '\0';
@@ -418,6 +422,20 @@ void *gui_setup(void *args){
         ClearBackground(WHITE);
         DrawRectangle(0, 0, 250, screen_size, RAYWHITE);
 
+        DrawText("Current Mode: ", 10, 450, 10, DARKGRAY);
+        switch (current_mode)
+        {
+        case passive:
+            DrawText("Waiting", 10, 470, 10, DARKGRAY);
+            break;
+        case receiver:
+            DrawText("Receiving data", 10, 470, 10, DARKGRAY);
+            break;
+        default:
+            DrawText("Reading data", 10, 470, 10, DARKGRAY);
+            break;
+        }
+
         DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
         DrawText("size_of_field", 10, 50, 10, DARKGRAY);
         DrawText("queue_size", 10, 90, 10, DARKGRAY);
@@ -453,7 +471,7 @@ void *gui_setup(void *args){
                 params->names[i][32] = '\0';
         }
 
-        if (GuiCharBox((Rectangle){ 130, 315, 100, 20 }, NULL, &filename[0], 
+        if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, NULL, &filename[0], 
             variables[9] && can_change)) variables[9] = !variables[9];
 
         // save temporary variables to parameters struct
@@ -461,15 +479,13 @@ void *gui_setup(void *args){
 		{
             setup_complete = 1;
             current_mode = receiver;
-            can_change = false;
             clear_texture(*params);
             start_stop = 1;
 		}
 
-        if (GuiButton((Rectangle){ 10, 450, 50, 20 }, "Stop") && current_mode == receiver)
+        if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && current_mode == receiver)
         {
             current_mode = passive;
-            can_change = true;
             start_stop = 0;
         }
 
@@ -496,6 +512,8 @@ void *gui_setup(void *args){
                 number_of_samples = 0;
                 if(file_reading_mode != 1)  // read file without skipping to newest
                     update_queue_index(GUI);
+                else
+                    current_mode = file;
             }
         }
         
@@ -503,6 +521,11 @@ void *gui_setup(void *args){
         
 		EndDrawing();
         //----------------------------------------------------------------------------------
+        if(current_mode != passive){
+            can_change = false;
+        }else{
+            can_change = true;
+        }
 	}
     
 	CloseWindow();

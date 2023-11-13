@@ -3,3 +3,5 @@ server/server
 .vscode/
 client/*.bin
 client/*.txt
+client/config
+client/*/*.bin

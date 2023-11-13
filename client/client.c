@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 
 #include "c_includes.h"
@@ -27,7 +25,7 @@ int read_file = 0;
 int start_stop = 0;
 int pause_output = 0;
 
-char filename[25];
+char filename[100];
 char save_folder[64];
 
 // prints argument description using a set format
@@ -78,9 +76,7 @@ void print_help(){
 // reads arguments into parameters
 int read_arguments(int argc, char *argv[], parameters *params){
     int c = 1;
-    printf("%d\n", c);
     while(c < argc){
-        
         if(strcmp(argv[c], "number_of_fields") == 0){
             params->number_of_fields = atoi(argv[c+1]);
             if(params->number_of_fields < 1 || params->number_of_fields > 10){
@@ -129,7 +125,6 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         if(strcmp(argv[c], "folder") == 0){
             strcpy(save_folder, argv[c+1]);
-            mkdir(save_folder, 0777);
         }
         c += 2;
     }
@@ -139,8 +134,6 @@ int read_arguments(int argc, char *argv[], parameters *params){
                 argv[c+k][32] = '\0';
             strcpy(params->names[k], argv[c+k]);
         }
-    else
-        printf("Not enough names parameters check again.\n");
 }
 
 int main(int argc , char *argv[])
@@ -160,8 +153,7 @@ int main(int argc , char *argv[])
                          .port = 8888,
                          .ip = {127, 0, 0, 1}};
 
-    //load_params(&params);
-    // if argument is to read file 
+    load_params(&params);
     if(argc > 1){
         if(strcmp(argv[1], "read_file") == 0){
             strcpy(filename, argv[2]);
@@ -183,8 +175,6 @@ int main(int argc , char *argv[])
             return 1;
         }
     }
-
-    save_params(params);
 
     setup_queue(params);
 
