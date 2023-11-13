@@ -86,7 +86,9 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         if(strcmp(argv[c], "size_of_field") == 0){
             params->size_of_field = atoi(argv[c+1]);
-            if(params->size_of_field != 1 && params->size_of_field != 2 && params->size_of_field != 4){
+            if(params->size_of_field != 1 && 
+               params->size_of_field != 2 && 
+               params->size_of_field != 4){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }

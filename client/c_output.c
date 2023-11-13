@@ -73,7 +73,9 @@ void *output_package(void *args){
         if(ret != 1){   // value as retrieved
             unsigned int out = 0;
             int i;
-            for(i = 0; i < params.number_of_fields * params.size_of_field; i += params.size_of_field){
+            for(i = 0; 
+                i < params.number_of_fields * params.size_of_field; 
+                i += params.size_of_field){
                 // print each field to stdout
                 memcpy(&out, &data[i], sizeof(char) * params.size_of_field);    
                 printf("%u\t", out);
@@ -94,7 +96,9 @@ void *output_package(void *args){
         if(program_terminate == 1){
             printf("terminate output\n");
             sleep(1);
-            printf("bpm errors:\t\t%d\npacket errors:\t\t%d\n", bpm_errors, packet_errors);
+            printf("bpm errors:\t\t%d\npacket errors:\t\t%d\n", 
+                    bpm_errors, 
+                    packet_errors);
             return 0;
         }
     }

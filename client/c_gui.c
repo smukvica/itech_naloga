@@ -444,10 +444,15 @@ void *gui_setup(void *args){
         DrawText("ip", 10, 210, 10, DARKGRAY);
         DrawText("port", 10, 250, 10, DARKGRAY);
         DrawText("file name", 130, 300, 10, DARKGRAY);
-        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, " write to screen", &params->std_output);
-        GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, " write to file", &params->file_write);
-        if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, NULL, &params->port, 
-                      0, 1000000, variables[6] & can_change)) variables[6] = !variables[6];
+        GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, 
+                    " write to screen", &params->std_output);
+        GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, 
+                    " write to file", &params->file_write);
+        if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
+                      NULL, 
+                      &params->port, 
+                      0, 1000000, 
+                      variables[6] & can_change)) variables[6] = !variables[6];
         for(int i = 0; i < 4; i++){
             if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, NULL, &params->ip[i], 
                            0, 255, ip_vars[i] & can_change)) ip_vars[i] = !ip_vars[i];
@@ -471,11 +476,15 @@ void *gui_setup(void *args){
                 params->names[i][32] = '\0';
         }
 
-        if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, NULL, &filename[0], 
-            variables[9] && can_change)) variables[9] = !variables[9];
+        if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, 
+            NULL, 
+            &filename[0], 
+            variables[9] && can_change)) 
+            variables[9] = !variables[9];
 
         // save temporary variables to parameters struct
-		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && current_mode == passive)
+		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && 
+            current_mode == passive)
 		{
             setup_complete = 1;
             current_mode = receiver;
@@ -483,14 +492,16 @@ void *gui_setup(void *args){
             start_stop = 1;
 		}
 
-        if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && current_mode == receiver)
+        if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && 
+            current_mode == receiver)
         {
             current_mode = passive;
             start_stop = 0;
         }
 
         // sets the client to read from file
-        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && current_mode == passive)
+        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && 
+            current_mode == passive)
 		{
             read_file = 1;
             refresh = true;
@@ -503,7 +514,11 @@ void *gui_setup(void *args){
 
         if(setup_complete == 1){
             for(int i = 0; i < params->number_of_fields; i++){
-                DrawText(params->names[i], 260, 10 + i * screen_size / params->number_of_fields, 10, DARKGRAY);
+                DrawText(params->names[i], 
+                         260, 
+                         10 + i * screen_size / params->number_of_fields, 
+                         10, 
+                         DARKGRAY);
             }
             
             if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){
