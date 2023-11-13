@@ -25,7 +25,6 @@ extern int setup_complete;
 extern char filename[100];
 extern int read_file;
 extern int start_stop;
-extern const limits param_limits;
 
 // texture data
 Image image;

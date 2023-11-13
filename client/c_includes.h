@@ -17,11 +17,16 @@ typedef struct parameters{
 
 typedef struct limits{
     int queue_size[2];
-    int number_of_packets[2];
     int number_of_bpm[2];
     int file_entries[2];
     int number_of_fields[2];
     int size_of_field[2];
 }limits;
 
-extern const limits param_limits;
+static const limits param_limits = {
+    .queue_size = {200000, 100000000},
+    .number_of_bpm = {1, 4},
+    .file_entries = {500, 10000},
+    .number_of_fields = {1, 10},
+    .size_of_field = {1, 4}
+};

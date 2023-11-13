@@ -14,15 +14,6 @@
 #include "c_gui.h"
 #include "c_queue.h"
 
-const limits param_limits = {
-    .queue_size = {200000, 100000000},
-    .number_of_packets = {0, -1},
-    .number_of_bpm = {1, 4},
-    .file_entries = {500, 10000},
-    .number_of_fields = {1, 10},
-    .size_of_field = {1, 4}
-};
-
 pthread_t receiver;
 pthread_t output;
 pthread_t writer;
@@ -55,7 +46,7 @@ void print_help(){
     
     print_argument("number_of_fields",
                    "set the number of data fields in packets.",
-                   "example:\tnumber_of_fields 5\n",
+                   "number_of_fields 5",
                     param_limits.number_of_fields[0],
                     param_limits.number_of_fields[1]);
     print_argument("size_of_field",
@@ -97,7 +88,7 @@ void print_help(){
                    "read from a given file the data and print to standard out",
                    "read_file file1.bin", -1, -1);
     printf("at the end of all commands"
-           "write the names of the data fields in order\n");
+           " write the names of the data fields in order\n");
 }
 
 // reads arguments into parameters

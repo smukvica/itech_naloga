@@ -10,7 +10,6 @@
 
 extern int program_terminate;
 extern char save_folder[256];
-extern const limits param_limits;
 
 // saves parameters to file
 void save_params(parameters params){
