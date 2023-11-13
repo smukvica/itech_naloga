@@ -25,7 +25,8 @@ void load_params(parameters *params){
     char *line = NULL;
     ssize_t read;
     size_t len = 0;
-    char tf_values[2][5];
+    char tf_values[2][6];
+    char names[33*10] = {0};
     // if file doesn't exist don't read
     if(f != NULL){
         while ((read = getline(&line, &len, f)) != -1) {
@@ -41,7 +42,21 @@ void load_params(parameters *params){
             sscanf(line, "output: %s", tf_values[0]);
             sscanf(line, "writer: %s", tf_values[1]);
             sscanf(line, "folder: %s", &params->save_folder[0]);
+            sscanf(line, "names: %329c", names);
         }
+
+        int i = 0;
+        char *temp;
+        temp = strtok(names, "\n");
+        temp = strtok(names, " ");
+        while(temp != NULL){
+            if(strlen(temp) >= 32)
+                temp[31] = '\0';
+            strcpy(params->names[i], temp);
+            temp = strtok(NULL, " ");
+            i++;
+        }
+        
         int param_error = 0;
 
         if(strcmp(tf_values[0], "true") == 0)
@@ -54,7 +69,7 @@ void load_params(parameters *params){
             params->file_write = true;
         else if(strcmp(tf_values[1], "false") == 0)
             params->file_write = false;
-        else 
+        else
             param_error = 1;
         
         if(params->number_of_fields < param_limits.number_of_fields[0] || 
@@ -71,6 +86,10 @@ void load_params(parameters *params){
         }
         if(params->number_of_bpm < param_limits.number_of_bpm[0] || 
            params->number_of_bpm > param_limits.number_of_bpm[1]){
+            param_error = 1;
+        }
+        if(params->file_entries < param_limits.file_entries[0] || 
+           params->file_entries > param_limits.file_entries[1]){
             param_error = 1;
         }
         if(param_error)

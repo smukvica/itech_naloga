@@ -160,7 +160,7 @@ int read_arguments(int argc, char *argv[], parameters *params){
     if(argc >= c + params->number_of_fields)
         for(int k = 0; k < params->number_of_fields; k++){
             if(strlen(argv[c+k]) >= 32)
-                argv[c+k][32] = '\0';
+                argv[c+k][31] = '\0';
             strcpy(params->names[k], argv[c+k]);
         }
 }

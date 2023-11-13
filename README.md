@@ -46,6 +46,7 @@ Example of config file:
     output: true
     writer: false
     folder: files/
+    names: a b c d e
 
 A separate argument can be used to setup the file path to read from:
 
