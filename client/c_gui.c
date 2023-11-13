@@ -12,22 +12,10 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-
-// temporary values to store parameters before finishing setup
-const char dropdown_num_fields_options[21] = "1;2;3;4;5;6;7;8;9;10\0";
-int dropdown_num_fields_value = 0;
-const char dropdown_size_fields_options[6] = "1;2;4\0";
-int dropdown_size_field_value = 0;
-const char dropdown_num_bpm_options[8] = "1;2;3;4\0";
-int dropdown_num_bpm_value = 0;
-int queue_size_value = 1000;
-int port_value = 8888;
-int file_entries_value = 100;
-
 // size of generated texture, samples taken each timestep
-int texture_size = 500;
-int screen_size = 500;
-int samples = 1;
+const int texture_size = 500;
+const int screen_size = 500;
+const int samples = 1;
 // control if new values are being drawn on screen or not
 bool refresh = true;
 
@@ -91,12 +79,6 @@ void delete_texture(){
 }
 
 void create_image_from_data(char *data, parameters params){
-    // if samples are more than screen size stop updating texture
-    if(number_of_samples >= texture_size){
-        refresh = false;
-        current_mode = passive;
-        return;
-    }
     // loop through fetched samples and draw on texture
     for(int k = 0; k < samples; k++){
         // index of sample in char array
@@ -152,7 +134,8 @@ int TextToInt(const char* text)
 }
 
 // Float Box control, updates input text with numbers
-int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, int maxValue, bool editMode)
+int GuiIntBox(Rectangle bounds, const char* text, int* value,
+              int minValue, int maxValue, bool editMode)
 {
 #if !defined(RAYGUI_VALUEBOX_MAX_CHARS)
 #define RAYGUI_VALUEBOX_MAX_CHARS  32
@@ -417,10 +400,16 @@ void *gui_setup(void *args){
 
         if(setup_complete && refresh == true)
         {
-            // get data from queue
-            int ret = get_from_queue(&data[0], samples, GUI, *params);
-            if(ret != 1){ // if data is successful draw to screen
-                create_image_from_data(&data[0], *params);
+            if(number_of_samples == texture_size){
+                current_mode = passive;
+                number_of_samples = 0;
+                refresh = false;
+            }else{
+                // get data from queue
+                int ret = get_from_queue(&data[0], samples, GUI, *params);
+                if(ret != 1){ // if data is successful draw to screen
+                    create_image_from_data(&data[0], *params);
+                }
             }
         }
 
@@ -490,8 +479,8 @@ void *gui_setup(void *args){
             read_file = 1;
             refresh = true;
             file_reading_mode = 1;
-            clear_texture(*params);
             current_mode = file;
+            setup_complete = 1;
 		}
 
         DrawRectangle(250, 0, 100, screen_size, RAYWHITE);

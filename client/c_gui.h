@@ -9,3 +9,4 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode);
 int get_index_of_value(int value, const char *text);
 
 void *gui_setup(void *args);
+void clear_texture(parameters params);

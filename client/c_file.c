@@ -7,6 +7,7 @@
 #include "c_queue.h"
 
 extern int program_terminate;
+extern char save_folder[64];
 
 // saves parameters to file
 void save_params(parameters params){
@@ -31,7 +32,7 @@ void load_params(parameters *params){
 void *file_writer(void *args){
     FILE *f;
     parameters params = *(parameters *)args;
-    char filename[20];  // save file
+    char filename[100];  // save file
     int file_num = 0;   // current file number
     char data[(params.number_of_fields * params.size_of_field + 4) * params.file_entries];
     while(1){
@@ -48,9 +49,13 @@ void *file_writer(void *args){
             sleep(0);
         }
         // data aquired set filename, open file and write to it
-        sprintf(filename, "file_%05d.bin", file_num);
+        sprintf(filename, "%s/file_%05d.bin", save_folder, file_num);
         f = fopen(filename,"wb");
-        fwrite(data, (sizeof(char) * params.number_of_fields * params.size_of_field + 4), params.file_entries, f);
+        fwrite(&params, sizeof(parameters), 1, f);
+        fwrite(data, 
+               (sizeof(char) * params.number_of_fields * params.size_of_field + 4), 
+               params.file_entries, 
+               f);
         fclose(f);
 
         file_num++;
@@ -58,7 +63,7 @@ void *file_writer(void *args){
 }
 
 // read from file
-void file_reader(const char *file, parameters params){
+void file_reader(const char *file, parameters *params){
     FILE *f;
     f = fopen(file, "rb");
     if(f == NULL){
@@ -66,12 +71,16 @@ void file_reader(const char *file, parameters params){
         return;
     }
 
-    char buffer[(params.number_of_fields * params.size_of_field + 4) * params.file_entries];
+    fread(params, sizeof(parameters), 1, f);
+
+    char buffer[(params->number_of_fields * params->size_of_field + 4) * 
+                 params->file_entries];
     
-    fread(buffer, sizeof(char) * params.number_of_fields * params.size_of_field + 4 , params.file_entries, f);
+    fread(buffer, (sizeof(char) * params->number_of_fields * 
+                   params->size_of_field + 4), params->file_entries, f);
 
     // write data to queue
-    write_to_queue(&buffer[0], params.file_entries, FILEW, params);
+    write_to_queue(buffer, params->file_entries, FILEW, *params);
 
     fclose(f);
 }

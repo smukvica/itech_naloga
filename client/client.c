@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 #include "c_includes.h"
 #include "c_receiver.h"
@@ -25,6 +28,7 @@ int start_stop = 0;
 int pause_output = 0;
 
 char filename[25];
+char save_folder[64];
 
 // prints argument description using a set format
 void print_argument(const char *arg, const char *explain, const char *usage){
@@ -123,6 +127,10 @@ int read_arguments(int argc, char *argv[], parameters *params){
         if(strcmp(argv[c], "output") == 0){
             params->std_output = atoi(argv[c+1]) == 1 ? true : false;
         }
+        if(strcmp(argv[c], "folder") == 0){
+            strcpy(save_folder, argv[c+1]);
+            mkdir(save_folder, 0777);
+        }
         c += 2;
     }
     if(argc >= c + params->number_of_fields)
@@ -133,11 +141,6 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
     else
         printf("Not enough names parameters check again.\n");
-}
-
-void open_file_input(parameters params, char *filename){
-    load_params(&params);
-    
 }
 
 int main(int argc , char *argv[])
@@ -185,12 +188,13 @@ int main(int argc , char *argv[])
 
     setup_queue(params);
 
-    pthread_create(&receiver, NULL, read_package, (void*)&params);
+    
     if(params.std_output)
         pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
         pthread_create(&writer, NULL, file_writer, (void*)&params);
     
+    int created = 0;
 
     while(program_terminate != 1){
         if(read_file == 1){
@@ -198,9 +202,14 @@ int main(int argc , char *argv[])
             pause_output = 1;
             reset_queue();
             reset_package_order();
-            file_reader(&filename[0], params);
+            file_reader(&filename[0], &params);
+            clear_texture(params);
         }
         if(start_stop == 1 && receive == 0){
+            if(created == 0){
+                pthread_create(&receiver, NULL, read_package, (void*)&params);
+                created = 1;
+            }
             reset_queue();
             reset_package_order();
             receive = 1;
@@ -215,7 +224,8 @@ int main(int argc , char *argv[])
     if(params.file_write)
         pthread_join(writer, NULL);
     pthread_join(gui, NULL);
-    pthread_join(receiver, NULL);
+    if(created == 1)
+        pthread_join(receiver, NULL);
 
     free_queue();
 
