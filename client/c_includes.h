@@ -1,6 +1,8 @@
 #pragma once
 #include <stdbool.h>
 
+#define member_size(type, member) sizeof(((type *)0)->member)
+
 typedef struct parameters{
     int queue_size;
     int number_of_packets;
@@ -13,6 +15,7 @@ typedef struct parameters{
     bool std_output;
     int port;
     int ip[4];
+    char save_folder[256];
 }parameters;
 
 typedef struct limits{

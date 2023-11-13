@@ -59,25 +59,25 @@ void check_package_order(parameters params, int bpm_id, int package_id){
 }
 
 void *output_package(void *args){
-    parameters params = *(parameters *)args;
-    char data[params.number_of_fields * params.size_of_field + 4];
-    for(int i = 0; i < params.number_of_fields; i++){
-        printf("%s\t", params.names[i]);
+    parameters *params = (parameters *)args;
+    char data[param_limits.number_of_fields[1] * param_limits.size_of_field[1] + 4];
+    for(int i = 0; i < params->number_of_fields; i++){
+        printf("%s\t", params->names[i]);
     }
     printf("status\n");
     while(1){
         
 
         //  get data from queue
-        int ret = get_from_queue(&data[0], 1, OUTPUT, params);
+        int ret = get_from_queue(&data[0], 1, OUTPUT, *params);
         if(ret != 1){   // value as retrieved
             unsigned int out = 0;
             int i;
             for(i = 0; 
-                i < params.number_of_fields * params.size_of_field; 
-                i += params.size_of_field){
+                i < params->number_of_fields * params->size_of_field; 
+                i += params->size_of_field){
                 // print each field to stdout
-                memcpy(&out, &data[i], sizeof(char) * params.size_of_field);    
+                memcpy(&out, &data[i], sizeof(char) * params->size_of_field);    
                 printf("%u\t", out);
             }
             // print also status field
@@ -88,7 +88,7 @@ void *output_package(void *args){
             unsigned int package_id = out >> 16;
             unsigned int bpm_id =     (out & (0xF << 2)) >> 2;
             
-            check_package_order(params, bpm_id, package_id);
+            check_package_order(*params, bpm_id, package_id);
         }else{
             sleep(0);
         }

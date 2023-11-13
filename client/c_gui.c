@@ -381,7 +381,7 @@ void *gui_setup(void *args){
 	SetTargetFPS(60);
     
     // variables to select gui elements
-	bool variables[10] = {false};
+	bool variables[11] = {false};
     bool name_variables[10] = {false};
     bool ip_vars[4] = {false};
 
@@ -389,7 +389,8 @@ void *gui_setup(void *args){
 	//--------------------------------------------------------------------------------------
 
     // data field to store samples
-    char data[(params->size_of_field * params->number_of_fields + 4) * samples];
+    char data[(param_limits.number_of_fields[1] * 
+               param_limits.size_of_field[1] + 4) * samples];
 
     create_texture(*params);
 
@@ -444,7 +445,8 @@ void *gui_setup(void *args){
             DrawText("file_entries", 10, 170, 10, DARKGRAY);
             DrawText("ip", 10, 210, 10, DARKGRAY);
             DrawText("port", 10, 250, 10, DARKGRAY);
-            DrawText("file name", 130, 300, 10, DARKGRAY);
+            DrawText("save folder", 130, 295, 10, DARKGRAY);
+            DrawText("file name to read", 130, 335, 10, DARKGRAY);
             GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, 
                         " write to screen", &params->std_output);
             GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, 
@@ -504,11 +506,16 @@ void *gui_setup(void *args){
                     params->names[i][32] = '\0';
             }
 
-            if (GuiCharBox((Rectangle){ 130, 315, 120, 20 }, 
+            if (GuiCharBox((Rectangle){ 130, 350, 120, 20 }, 
                 NULL, 
                 &filename[0], 
                 variables[9] && can_change)) 
                 variables[9] = !variables[9];
+            if (GuiCharBox((Rectangle){ 130, 310, 120, 20 }, 
+                NULL, 
+                &params->save_folder[0], 
+                variables[10] && can_change)) 
+                variables[10] = !variables[10];
         }
 
 
@@ -529,7 +536,7 @@ void *gui_setup(void *args){
         }
 
         // sets the client to read from file
-        if (GuiButton((Rectangle){ 130, 350, 50, 20 }, "Read file") && 
+        if (GuiButton((Rectangle){ 130, 375, 50, 20 }, "Read file") && 
             current_mode == passive)
 		{
             read_file = 1;

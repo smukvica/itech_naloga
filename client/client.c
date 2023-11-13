@@ -26,7 +26,6 @@ int start_stop = 0;
 int pause_output = 0;
 
 char filename[100];
-char save_folder[256];
 
 // prints argument description using a set format
 void print_argument(const char *arg, const char *explain, const char *usage, 
@@ -154,7 +153,7 @@ int read_arguments(int argc, char *argv[], parameters *params){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
         }
         if(strcmp(argv[c], "folder") == 0){
-            strcpy(save_folder, argv[c+1]);
+            strcpy(params->save_folder, argv[c+1]);
         }
         c += 2;
     }

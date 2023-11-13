@@ -9,7 +9,6 @@
 #include "c_queue.h"
 
 extern int program_terminate;
-extern char save_folder[256];
 
 // saves parameters to file
 void save_params(parameters params){
@@ -41,7 +40,7 @@ void load_params(parameters *params){
             sscanf(line, "port: %d", &params->port);
             sscanf(line, "output: %s", tf_values[0]);
             sscanf(line, "writer: %s", tf_values[1]);
-            sscanf(line, "folder: %s", &save_folder[0]);
+            sscanf(line, "folder: %s", &params->save_folder[0]);
         }
         int param_error = 0;
 
@@ -83,24 +82,25 @@ void load_params(parameters *params){
 // writer thread function
 void *file_writer(void *args){
     FILE *f;
-    parameters params = *(parameters *)args;
+    parameters *params = (parameters *)args;
     // write parameters without file_write
     parameters temp;
     memcpy(&temp, &params, sizeof(parameters));
     temp.file_write = false;
     char filename[512];  // save file
     int file_num = 0;   // current file number
-    char data[(params.number_of_fields * params.size_of_field + 4) * 
-               params.file_entries];
+    char data[(param_limits.number_of_fields[1] * 
+               param_limits.size_of_field[1] + 4) * 
+               param_limits.file_entries[1]];
     
-    mkdir(save_folder, 0777);
+    mkdir(params->save_folder, 0777);
     while(1){
         // gets data from queue
-        int ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
+        int ret = get_from_queue(&data[0], params->file_entries, FILEW, *params);
         
         // if no data was aquired keep trying
         while(ret){
-            ret = get_from_queue(&data[0], params.file_entries, FILEW, params);
+            ret = get_from_queue(&data[0], params->file_entries, FILEW, *params);
             if(program_terminate == 1){
                 printf("terminate writer\n");
                 return 0;
@@ -108,12 +108,12 @@ void *file_writer(void *args){
             sleep(0);
         }
         // data aquired set filename, open file and write to it
-        sprintf(filename, "%sfile_%05d.bin", save_folder, file_num);
+        sprintf(filename, "%sfile_%05d.bin", params->save_folder, file_num);
         f = fopen(filename,"wb");
-        fwrite(&temp, sizeof(parameters), 1, f);
+        fwrite(&temp, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
         fwrite(data, 
-               (sizeof(char) * params.number_of_fields * params.size_of_field + 4), 
-               params.file_entries, 
+               (sizeof(char) * params->number_of_fields * params->size_of_field + 4), 
+               params->file_entries, 
                f);
         fclose(f);
 
@@ -130,7 +130,7 @@ void file_reader(const char *file, parameters *params){
         return;
     }
 
-    fread(params, sizeof(parameters), 1, f);
+    fread(params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
     setup_queue(*params);
 
     char buffer[(params->number_of_fields * params->size_of_field + 4) * 
