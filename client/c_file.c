@@ -9,7 +9,7 @@
 #include "c_queue.h"
 
 extern int program_terminate;
-extern char save_folder[64];
+extern char save_folder[256];
 
 // saves parameters to file
 void save_params(parameters params){
@@ -85,7 +85,7 @@ void *file_writer(void *args){
     parameters temp;
     memcpy(&temp, &params, sizeof(parameters));
     temp.file_write = false;
-    char filename[100];  // save file
+    char filename[512];  // save file
     int file_num = 0;   // current file number
     char data[(params.number_of_fields * params.size_of_field + 4) * 
                params.file_entries];

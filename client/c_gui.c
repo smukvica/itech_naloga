@@ -89,7 +89,7 @@ void create_image_from_data(char *data, parameters params){
             memcpy(&out, 
                    &data[f + i * params.size_of_field], 
                    sizeof(char) * params.size_of_field);
-            // calculate height offset given current field num (i) and out value
+            // calculate height offset given current field num (i) in out value
             unsigned int height_offset = texture_size / 
                                          params.number_of_fields - 
                                          (unsigned int)(((float)out / 
@@ -373,7 +373,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR); // no logs from raylib
     
-	InitWindow(250+600, 500, "Client");
+	InitWindow(350+screen_size, screen_size, "Client");
 
     parameters *params = (parameters*)args;
 

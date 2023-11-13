@@ -26,7 +26,7 @@ int start_stop = 0;
 int pause_output = 0;
 
 char filename[100];
-char save_folder[64];
+char save_folder[256];
 
 // prints argument description using a set format
 void print_argument(const char *arg, const char *explain, const char *usage){
