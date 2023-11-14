@@ -15,6 +15,9 @@
 extern int program_terminate;
 extern int start_stop;
 
+// count pacages received
+int received_packages = 0;
+
 void *read_package(void *arguments){
     parameters *params = arguments;
     struct sockaddr_in server;
@@ -45,8 +48,6 @@ void *read_package(void *arguments){
 		exit(1);
 	}
     
-    // count pacages received
-    int received_packages = 0;
     // measure time taken
     double t = omp_get_wtime();
 

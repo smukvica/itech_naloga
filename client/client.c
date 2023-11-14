@@ -24,6 +24,9 @@ int setup_complete = 0;
 int read_file = 0;
 int start_stop = 0;
 
+extern unsigned int packet_errors;
+extern int received_packages;
+
 char filename[100];
 
 // prints argument description using a set format
@@ -210,8 +213,7 @@ int main(int argc , char *argv[])
     setup_queue(params);
 
     
-    if(params.std_output)
-        pthread_create(&output, NULL, output_package, (void*)&params);
+    pthread_create(&output, NULL, output_package, (void*)&params);
     if(params.file_write)
         pthread_create(&writer, NULL, file_writer, (void*)&params);
     
@@ -239,8 +241,7 @@ int main(int argc , char *argv[])
         }
         sleep(0);
     }
-    if(params.std_output)
-        pthread_join(output, NULL);
+    pthread_join(output, NULL);
     if(params.file_write)
         pthread_join(writer, NULL);
     pthread_join(gui, NULL);
@@ -248,6 +249,8 @@ int main(int argc , char *argv[])
         pthread_join(receiver, NULL);
 
     free_queue();
+
+    printf("packet error rate: \t%f\n", (float)packet_errors/received_packages);
 
 	return 0;
 }

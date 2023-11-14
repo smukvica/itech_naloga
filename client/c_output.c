@@ -77,16 +77,19 @@ void *output_package(void *args){
         if(ret != 1){   // value as retrieved
             unsigned int out = 0;
             int i;
+            
             for(i = 0; 
                 i < params->number_of_fields * params->size_of_field; 
                 i += params->size_of_field){
                 // print each field to stdout
                 memcpy(&out, &data[i], sizeof(char) * params->size_of_field);    
-                printf("%10u ", out);
+                if(params->std_output != false)
+                    printf("%10u ", out);
             }
             // print also status field
             memcpy(&out, &data[i], sizeof(char) * 4);
-            printf("%u\n", out);
+            if(params->std_output != false)
+                printf("%u\n", out);
 
             // extract package number and bpm values to check for errors
             unsigned int package_id = out >> 16;

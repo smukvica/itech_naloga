@@ -8,6 +8,8 @@
 #include <string.h>
 #include <omp.h>
 #include <math.h>
+#include <time.h>
+
 
 int packets_sent = 0;
 int number_of_packets = 100000;
@@ -18,6 +20,7 @@ int num_of_fields = 3;
 int size_of_field = 4; // size in bytes
 
 int send_rate = 10000;
+int skip_rate = 0;
 
 unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 
@@ -89,6 +92,7 @@ void print_help(){
 
 int main(int argc , char *argv[])
 {
+    srand(time(NULL));
     int i = 1;
     if(strcmp(argv[1], "help") == 0){
         print_help();
@@ -121,6 +125,9 @@ int main(int argc , char *argv[])
         }
         if(strcmp(argv[i], "send_rate") == 0){
             send_rate = atoi(argv[i+1]);
+        }
+        if(strcmp(argv[i], "skip_rate") == 0){
+            skip_rate = atoi(argv[i+1]);
         }
         
         i += 2;
@@ -178,8 +185,8 @@ int main(int argc , char *argv[])
             current_time_between_packets = 0.0;
 
             create_packet(message);
-        
-            write(new_socket, message, num_of_fields*size_of_field+4);
+            if((rand() % 100) + 1 > skip_rate)
+                write(new_socket, message, num_of_fields*size_of_field+4);
             packets_sent++;
         }
     }
