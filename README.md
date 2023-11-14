@@ -14,6 +14,7 @@ The arguments that can be provided are as follows:
 * ***number_of_packets*** - sets the number of packets to be sent
 * ***number_of_bpm*** - sets the number of bpm the device will simulate
 * ***send_rate*** - sets the amount of packets sent each second (very high rates may not be reached - *ex. 20000*)
+* ***skip_rate*** - set the percent of packages to be skipped when sending (just the number without *%* sign)
 * ***help*** - displays the help for arguments
 
 The server will continue to send th packets until all packets are sent or the program is otherwise terminated.
