@@ -23,7 +23,6 @@ int program_terminate = 0;
 int setup_complete = 0;
 int read_file = 0;
 int start_stop = 0;
-int pause_output = 0;
 
 char filename[100];
 
@@ -221,7 +220,6 @@ int main(int argc , char *argv[])
     while(program_terminate != 1){
         if(read_file == 1){
             read_file = 0;
-            pause_output = 1;
             reset_queue();
             reset_package_order();
             file_reader(&filename[0], &params);
