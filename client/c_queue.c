@@ -85,6 +85,6 @@ void reset_queue(){
 // updates the queue index to most recent entry - only GUI usage
 void update_queue_index(int id){
     sem_wait(&semaphore_q);
-    reader_index[id] = writer_index;
+    reader_index[id] = writer_index - 500;
     sem_post(&semaphore_q);
 }

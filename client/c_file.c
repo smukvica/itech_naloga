@@ -10,14 +10,6 @@
 
 extern int program_terminate;
 
-// saves parameters to file
-void save_params(parameters params){
-    FILE *f;
-    f = fopen("params.bin", "wb");
-    fwrite(&params, sizeof(parameters), 1, f);
-    fclose(f);
-}
-
 // loads parameters from file
 void load_params(parameters *params){
     FILE *f;
@@ -104,7 +96,7 @@ void *file_writer(void *args){
     parameters *params = (parameters *)args;
     // write parameters without file_write
     parameters temp;
-    memcpy(&temp, &params, sizeof(parameters));
+    memcpy(&temp, params, sizeof(parameters));
     temp.file_write = false;
     char filename[512];  // save file
     int file_num = 0;   // current file number
@@ -126,6 +118,8 @@ void *file_writer(void *args){
             }
             sleep(0);
         }
+        if(trace)
+            printf("writing to file\n");
         // data aquired set filename, open file and write to it
         sprintf(filename, "%sfile_%05d.bin", params->save_folder, file_num);
         f = fopen(filename,"wb");
@@ -142,6 +136,8 @@ void *file_writer(void *args){
 
 // read from file
 void file_reader(const char *file, parameters *params){
+    if(trace)
+        printf("reading from file\n");
     FILE *f;
     f = fopen(file, "rb");
     if(f == NULL){
@@ -154,6 +150,8 @@ void file_reader(const char *file, parameters *params){
 
     char buffer[(params->number_of_fields * params->size_of_field + 4) * 
                  params->file_entries];
+
+    printf("%d %d\n", params->number_of_fields, params->size_of_field);
     
     fread(buffer, (sizeof(char) * params->number_of_fields * 
                    params->size_of_field + 4), params->file_entries, f);

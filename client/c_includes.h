@@ -3,6 +3,8 @@
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
+extern int trace;
+
 typedef struct parameters{
     int queue_size;
     int number_of_packets;

@@ -50,6 +50,8 @@ void *read_package(void *arguments){
     
     // measure time taken
     double t = omp_get_wtime();
+    if(trace)
+        printf("receiving data\n");
 
     while(1){
         while(start_stop == 0){

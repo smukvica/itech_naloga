@@ -23,6 +23,7 @@ int program_terminate = 0;
 int setup_complete = 0;
 int read_file = 0;
 int start_stop = 0;
+int trace = 0; // output function entries (most of them)
 
 extern unsigned int packet_errors;
 extern int received_packages;

@@ -16,7 +16,7 @@
 // size of generated texture, samples taken each timestep
 const int texture_size = 1000;
 const int screen_size = 500;
-const int samples = 1;
+const int samples = 500;
 // control if new values are being drawn on screen or not
 bool refresh = true;
 
@@ -25,6 +25,7 @@ extern int setup_complete;
 extern char filename[100];
 extern int read_file;
 extern int start_stop;
+extern unsigned int packet_errors;
 
 // texture data
 Image image;
@@ -44,9 +45,10 @@ enum mode current_mode = passive;
 
 // clears texture to default state - white with black lines dividing the fields
 void clear_texture(parameters params){
+    if(trace)
+        printf("clearing texture\n");
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
-
             if(j%(500 / params.number_of_fields) == 0 && j != 0)
                 texture_data[j * texture_width + i] = 127;
             else
@@ -57,6 +59,8 @@ void clear_texture(parameters params){
 }
 
 void create_texture(parameters params){
+    if(trace)
+        printf("creating texture\n");
     texture_width = texture_size;
     texture_height = screen_size;
     texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
@@ -73,11 +77,15 @@ void create_texture(parameters params){
 }
 
 void delete_texture(){
+    if(trace)
+        printf("deleting texture\n");
     //UnloadTexture(texture);
     free(texture_data);
 }
 
 void create_image_from_data(char *data, parameters params){
+    if(trace)
+        printf("updating texture\n");
     // loop through fetched samples and draw on texture
     for(int k = 0; k < samples; k++){
         // index of sample in char array
@@ -391,6 +399,7 @@ void *gui_setup(void *args){
     // data field to store samples
     char data[(param_limits.number_of_fields[1] * 
                param_limits.size_of_field[1] + 4) * samples];
+    char corrupt_packages[32];
 
     create_texture(*params);
 
@@ -428,15 +437,20 @@ void *gui_setup(void *args){
             switch (current_mode)
             {
             case passive:
-                DrawText("Waiting", 10, 470, 10, DARKGRAY);
+                DrawText("Waiting", 10, 460, 10, DARKGRAY);
                 break;
             case receiver:
-                DrawText("Receiving data", 10, 470, 10, DARKGRAY);
+                DrawText("Receiving data", 10, 460, 10, DARKGRAY);
                 break;
             default:
-                DrawText("Reading data", 10, 470, 10, DARKGRAY);
+                DrawText("Reading data", 10, 460, 10, DARKGRAY);
                 break;
             }
+
+            sprintf(corrupt_packages, "package errors: %d", packet_errors);
+            DrawText(corrupt_packages, 10, 475, 10, DARKGRAY);
+
+            
 
             DrawText("number_of_fields", 10, 10, 10, DARKGRAY);
             DrawText("size_of_field", 10, 50, 10, DARKGRAY);
@@ -522,6 +536,8 @@ void *gui_setup(void *args){
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && 
             current_mode == passive)
 		{
+            if(trace)
+                printf("starting net capture\n");
             setup_complete = 1;
             current_mode = receiver;
             clear_texture(*params);
@@ -531,6 +547,8 @@ void *gui_setup(void *args){
         if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && 
             current_mode == receiver)
         {
+            if(trace)
+                printf("stopping net capture\n");
             current_mode = passive;
             start_stop = 0;
         }
@@ -539,9 +557,10 @@ void *gui_setup(void *args){
         if (GuiButton((Rectangle){ 130, 375, 50, 20 }, "Read file") && 
             current_mode == passive)
 		{
+            if(trace)
+                printf("reading file\n");
             read_file = 1;
             refresh = true;
-            current_mode = file;
             setup_complete = 1;
 		}
 
@@ -557,13 +576,13 @@ void *gui_setup(void *args){
             }
             
             if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){
+                if(trace)
+                    printf("refreshing data\n");
                 refresh = true;
                 clear_texture(*params);
                 number_of_samples = 0;
                 if(current_mode == receiver) // update index only when receiving
                     update_queue_index(GUI);
-                else
-                    current_mode = file;
             }
         }
         
