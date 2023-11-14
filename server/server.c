@@ -104,9 +104,9 @@ int main(int argc , char *argv[])
         }
         if(strcmp(argv[i], "size_of_field") == 0){
             size_of_field = atoi(argv[i+1]);
-            if(size_of_field != 1 && size_of_field != 2 && size_of_field != 4){
+            if(size_of_field < 1 || size_of_field > 4){
                 printf("wrong usage of argument %s. see help\n", argv[i]);
-                //return 1;
+                return 1;
             }
         }
         if(strcmp(argv[i], "number_of_packets") == 0){
