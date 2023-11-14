@@ -86,6 +86,9 @@ void delete_texture(){
 void create_image_from_data(char *data, parameters params){
     if(trace)
         printf("updating texture\n");
+
+    unsigned int field_height;
+    float field_ratio;
     // loop through fetched samples and draw on texture
     for(int k = 0; k < samples; k++){
         // index of sample in char array
@@ -97,12 +100,12 @@ void create_image_from_data(char *data, parameters params){
             memcpy(&out, 
                    &data[f + i * params.size_of_field], 
                    sizeof(char) * params.size_of_field);
-            // calculate height offset given current field num (i) in out value
-            unsigned int height_offset = screen_size / 
-                                         params.number_of_fields - 
-                                         (unsigned int)(((float)out / 
-                                         (float)limits_of_data[params.size_of_field - 1]) * 
-                                         (screen_size / (float)params.number_of_fields));
+            // calculate height of field in screen size
+            field_height = screen_size / params.number_of_fields;
+            // calculate position from 0 to 1 based on out and max value
+            field_ratio = out / (float)limits_of_data[params.size_of_field - 1];
+            // field height - ratio because coordinates go down
+            const unsigned int height_offset = field_height - field_height * field_ratio;
             // set texture data value to black where sample is located
             texture_data[texture_width * 
                          (height_offset + i * screen_size / params.number_of_fields) + 

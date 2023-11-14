@@ -21,7 +21,6 @@ int number_of_consecutive_errors = 0;
 int previously_error = 0;
 
 extern int program_terminate;
-//extern int trace;
 
 // checks if 2 consecutive packages are in order
 void check_package_order(parameters params, int bpm_id, int package_id){
