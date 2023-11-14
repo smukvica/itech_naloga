@@ -82,7 +82,7 @@ void *output_package(void *args){
                 i += params->size_of_field){
                 // print each field to stdout
                 memcpy(&out, &data[i], sizeof(char) * params->size_of_field);    
-                printf("%u\t", out);
+                printf("%10u ", out);
             }
             // print also status field
             memcpy(&out, &data[i], sizeof(char) * 4);

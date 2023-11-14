@@ -14,7 +14,7 @@
 #include "raygui.h"
 
 // size of generated texture, samples taken each timestep
-const int texture_size = 500;
+const int texture_size = 1000;
 const int screen_size = 500;
 const int samples = 1;
 // control if new values are being drawn on screen or not
@@ -37,7 +37,7 @@ int texture_height;
 int number_of_samples = 0;
 
 // limits given for different sizes of fields
-unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFFF, 0xFFFFFFFF};
+unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 
 enum mode {passive, receiver, file};
 enum mode current_mode = passive;
@@ -90,14 +90,14 @@ void create_image_from_data(char *data, parameters params){
                    &data[f + i * params.size_of_field], 
                    sizeof(char) * params.size_of_field);
             // calculate height offset given current field num (i) in out value
-            unsigned int height_offset = texture_size / 
+            unsigned int height_offset = screen_size / 
                                          params.number_of_fields - 
                                          (unsigned int)(((float)out / 
                                          (float)limits_of_data[params.size_of_field - 1]) * 
-                                         (texture_size / (float)params.number_of_fields)); 
+                                         (screen_size / (float)params.number_of_fields));
             // set texture data value to black where sample is located
             texture_data[texture_width * 
-                         (height_offset + i * texture_size / params.number_of_fields) + 
+                         (height_offset + i * screen_size / params.number_of_fields) + 
                          number_of_samples] = 0;
         }
         number_of_samples += 1;
@@ -403,7 +403,7 @@ void *gui_setup(void *args){
 
         if(setup_complete && refresh == true)
         {
-            if(number_of_samples == texture_size){
+            if(number_of_samples == screen_size){
                 if(current_mode == file)
                     current_mode = passive;
                 number_of_samples = 0;

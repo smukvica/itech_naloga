@@ -57,7 +57,7 @@ void create_packet(char *packet){
     unsigned int out = 0;
     for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
         memcpy(&out, &fields[i], sizeof(char) * size_of_field);
-        printf("%u\t", out);
+        printf("%10u ", out);
     }
     printf("%u\n", status);
 }
@@ -106,7 +106,7 @@ int main(int argc , char *argv[])
             size_of_field = atoi(argv[i+1]);
             if(size_of_field != 1 && size_of_field != 2 && size_of_field != 4){
                 printf("wrong usage of argument %s. see help\n", argv[i]);
-                return 1;
+                //return 1;
             }
         }
         if(strcmp(argv[i], "number_of_packets") == 0){
@@ -193,16 +193,8 @@ int main(int argc , char *argv[])
 /*
 
 compile:
-gcc *.c -fopenmp -o server
+gcc *.c -fopenmp -lm -o server
 
 run:
-./server 
-
-virtual box
-
-stop:
-Ctrl + C
-automatically after number of packets is sent
-
-
+./server number_of_packets 10000 number_of_fields 5 size_of_field 2 number_of_bpm 1 send_rate 100
 */
