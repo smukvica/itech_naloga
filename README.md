@@ -77,3 +77,14 @@ To compile the server move to the client folder and type the command:
     gcc *.c -fopenmp -lm -lpthread -lraylib -o client
 
 For compiling and using the client the [raylib](https://github.com/raysan5/raylib) and [raygui](https://github.com/raysan5/raygui) library are needed. Raygui is already included since it's a header only library. Raylib has to be insalled separately.
+
+## Testing
+
+To run tests simply go into the **client** folder, and run the following commands:
+
+    cmake -S . -B build
+    cmake --build build
+    cd build
+    ctest
+
+The tests will run and the results will be displayed in the console.
