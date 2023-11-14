@@ -24,19 +24,23 @@ extern int program_terminate;
 
 // checks if 2 consecutive packages are in order
 void check_package_order(parameters params, int bpm_id, int package_id){
-    if(check_bpm == -1) // no packages checked before no need to check if valid
+    if(check_bpm == -1) // no packages checked before
         check_bpm = bpm_id;
-    else
-        if(check_bpm != bpm_id){    // expected value is different from actual
+    else{
+        // expected value is different from actual
+        if(check_bpm != bpm_id){    
             printf("zaporedje bpm napačno\n");
             bpm_errors++;
         }
-        check_bpm = (bpm_id + 1) % params.number_of_bpm; // update expected value for next package
+        // update expected value for next package
+        check_bpm = (bpm_id + 1) % params.number_of_bpm; 
+    }
     
-    if(check_packet_num == -1) // no packages checked before no need to check if valid
+    if(check_packet_num == -1) // no packages checked before
         check_packet_num = package_id;
-    else
-        // expected value is different from actual or number is larger than max available bits
+    else{
+        // expected value is different from actual or 
+        // number is larger than max available bits
         if(check_packet_num + 1 != package_id && check_packet_num != 65535){ 
             printf("zaporedje paketov napačno\n");
             if(previously_error == 0){  // first wrong package
@@ -46,14 +50,14 @@ void check_package_order(parameters params, int bpm_id, int package_id){
                 number_of_consecutive_errors++;
             }
             packet_errors++;
-        }
-        else{   // reset consecutive errors
+        } else {   // reset consecutive errors
             previously_error = 0;
             number_of_consecutive_errors = 0;
         }
         check_packet_num = package_id;
-
-    if(number_of_consecutive_errors > 100){ // if consecutive errors > 100 terminate
+    }
+    // if consecutive errors > 100 terminate
+    if(number_of_consecutive_errors > 100){ 
         program_terminate = 1;
     }
 }

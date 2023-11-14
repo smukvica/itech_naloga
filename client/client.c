@@ -131,7 +131,10 @@ int read_arguments(int argc, char *argv[], parameters *params){
             params->file_entries = atoi(argv[c+1]);
         }
         if(strcmp(argv[c], "ip") == 0){
-            sscanf(argv[c+1], "%d.%d.%d.%d", &params->ip[0], &params->ip[1], &params->ip[2], &params->ip[3]);
+            sscanf(argv[c+1], "%d.%d.%d.%d", &params->ip[0], 
+                                             &params->ip[1], 
+                                             &params->ip[2], 
+                                             &params->ip[3]);
         }
         if(strcmp(argv[c], "port") == 0){
             params->port = atoi(argv[c+1]);
@@ -186,10 +189,10 @@ int main(int argc , char *argv[])
     if(argc > 1){
         if(strcmp(argv[1], "read_file") == 0){
             strcpy(filename, argv[2]);
-        } else if(strcmp(argv[1], "help") == 0){  // argument to print help
+        } else if (strcmp(argv[1], "help") == 0){  // argument to print help
             print_help();
             return 0;
-        }else if(read_arguments(argc, argv, &params) == 1) // reads other arguments
+        } else if (read_arguments(argc, argv, &params) == 1) // reads other arguments
             return 1;
     }
 
