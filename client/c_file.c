@@ -11,9 +11,9 @@
 extern int program_terminate;
 
 // loads parameters from file
-void load_params(parameters *params){
+void load_params(const char *file, parameters *params){
     FILE *f;
-    f = fopen("config", "rb");
+    f = fopen(file, "rb");
     char *line = NULL;
     ssize_t read;
     size_t len = 0;
@@ -151,8 +151,6 @@ void file_reader(const char *file, parameters *params){
     char buffer[(params->number_of_fields * params->size_of_field + 4) * 
                  params->file_entries];
 
-    printf("%d %d\n", params->number_of_fields, params->size_of_field);
-    
     fread(buffer, (sizeof(char) * params->number_of_fields * 
                    params->size_of_field + 4), params->file_entries, f);
 

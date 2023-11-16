@@ -63,7 +63,9 @@ void create_texture(parameters params){
         printf("creating texture\n");
     texture_width = texture_size;
     texture_height = screen_size;
-    texture_data = malloc(sizeof(unsigned char) * texture_width * texture_height);
+    texture_data = (unsigned char*)malloc(sizeof(unsigned char) * 
+                                          texture_width * 
+                                          texture_height);
     image = (Image){.data = texture_data, 
                     .width = texture_width, 
                     .height = texture_height, 

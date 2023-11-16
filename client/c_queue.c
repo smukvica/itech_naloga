@@ -18,14 +18,14 @@ sem_t semaphore_q;
 // only writer thread and receiver thread write (not at same time)
 void write_to_queue(char *data, int size, int id, parameters params){
     // copy data to queue
-    memcpy(queue + writer_index % params.queue_size * 
+    memcpy(queue + writer_index * 
                 (params.number_of_fields * params.size_of_field + 4),
            data, 
            (params.number_of_fields * params.size_of_field + 4) * size);
     // semaphore to avoid multiple access to queue index
     sem_wait(&semaphore_q);
     writer_index += size;   // set writer index forward
-    if(writer_index >= INT_MAX) // keep it in range of max value
+    // keep it in range of max value
     writer_index %= params.queue_size;
     sem_post(&semaphore_q);
 }
@@ -50,7 +50,7 @@ int get_from_queue(char *data, int size, int id, parameters params){
         // update index
         reader_index[id] += size;
         // keep index in range
-        if(reader_index[id] >= INT_MAX) reader_index[id] %= params.queue_size;
+        reader_index[id] %= params.queue_size;
         // data copy successful return 0
         return 0;
     }

@@ -176,10 +176,10 @@ int main(int argc , char *argv[])
     // variable preventing from creating multiple receiver threads
     int receive = 0;
     // default setup for parameters
-    parameters params = {.queue_size = 100,
+    parameters params = {.queue_size = param_limits.queue_size[0],
                          .number_of_packets = 1000,
                          .number_of_bpm = 1,
-                         .file_entries = 100,
+                         .file_entries = param_limits.file_entries[0],
                          .number_of_fields = 3,
                          .size_of_field = 4,
                          .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
@@ -188,7 +188,7 @@ int main(int argc , char *argv[])
                          .port = 8888,
                          .ip = {127, 0, 0, 1}};
 
-    load_params(&params);
+    load_params("config", &params);
     if(argc > 1){
         if(strcmp(argv[1], "read_file") == 0){
             strcpy(filename, argv[2]);
