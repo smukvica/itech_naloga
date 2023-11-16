@@ -107,10 +107,11 @@ void create_image_from_data(char *data, parameters params){
             // calculate position from 0 to 1 based on out and max value
             field_ratio = out / (float)limits_of_data[params.size_of_field - 1];
             // field height - ratio because coordinates go down
-            const unsigned int height_offset = field_height - field_height * field_ratio;
+            const unsigned int height_offset = field_height - 
+                                               field_height * field_ratio;
             // set texture data value to black where sample is located
             texture_data[texture_width * 
-                         (height_offset + i * screen_size / params.number_of_fields) + 
+                         (height_offset + i * field_height) + 
                          number_of_samples] = 0;
         }
         number_of_samples += 1;
