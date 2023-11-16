@@ -37,14 +37,15 @@ int get_from_queue(char *data, int size, int id, parameters params){
 
     sem_wait(&semaphore_q);
     // check if indices are valid
-    if(reader_index[id] + size <= writer_index) can_write = 1;
+    if((reader_index[id] + size) % params.queue_size < writer_index)
+        can_write = 1;
     sem_post(&semaphore_q);
 
     // we can get data
     if(can_write){
         // copy data
         memcpy(data, 
-               queue + (reader_index[id] % params.queue_size) * 
+               queue + reader_index[id] * 
                        (params.number_of_fields * params.size_of_field + 4),
                (params.number_of_fields * params.size_of_field + 4) * size);
         // update index
