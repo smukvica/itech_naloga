@@ -588,7 +588,7 @@ void *gui_setup(void *args){
                 clear_texture(*params);
                 number_of_samples = 0;
                 if(current_mode == receiver) // update index only when receiving
-                    update_queue_index(GUI);
+                    update_queue_index(GUI, *params);
             }
         }
         

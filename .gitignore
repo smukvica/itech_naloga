@@ -4,4 +4,5 @@ server/server
 client/*.bin
 client/config
 client/*/*.bin
+client/tests/build
 client/build

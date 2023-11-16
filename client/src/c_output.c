@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "c_output.h"
-#include "c_includes.h"
 #include "c_queue.h"
 
 // save previous values of bpm and packet number initial is -1 (not set before)
@@ -117,3 +116,24 @@ void reset_package_order(){
     check_bpm = -1;
     check_packet_num = -1;
 }
+
+#ifndef NDEBUG
+void set_check_bpm(int v){
+    check_bpm = v;
+}
+void set_check_packet_num(int v){
+    check_packet_num = v;
+}
+void set_packet_errors(int v){
+    packet_errors = v;
+}
+int get_check_bpm(){
+    return check_bpm;
+}
+int get_check_packet_num(){
+    return check_packet_num;
+}
+int get_packet_errors(){
+    return packet_errors;
+}
+#endif
