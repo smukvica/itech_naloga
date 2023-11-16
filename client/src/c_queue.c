@@ -57,8 +57,6 @@ int get_from_queue(char *data, int size, int id, parameters params){
     if(index_is_smaller(r, w, size, params))
         can_write = 1;
 
-    printf("hehe\n");
-
     // we can get data
     if(can_write){
         int size_of_data = (params.number_of_fields * params.size_of_field + 4);
