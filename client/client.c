@@ -49,31 +49,31 @@ void print_help(){
     print_argument("number_of_fields",
                    "set the number of data fields in packets.",
                    "number_of_fields 5",
-                    param_limits.number_of_fields[0],
-                    param_limits.number_of_fields[1]);
+                    get_limit("number_of_fields", 0),
+                    get_limit("number_of_fields", 1));
     print_argument("size_of_field",
                    "set the size of each data field in packet.",
                    "size_of_field 4",
-                   param_limits.size_of_field[0],
-                   param_limits.size_of_field[1]);
+                   get_limit("size_of_field", 0),
+                   get_limit("size_of_field", 1));
     print_argument("number_of_packets",
                    "set limit of packets sent.",
                    "number_of_packets 1000", -1, -1);
     print_argument("number_of_bpm",
                    "set the number of bpm cards simulated.",
                    "number_of_bpm 1",
-                   param_limits.number_of_bpm[0],
-                   param_limits.number_of_bpm[1]);
+                   get_limit("number_of_bpm", 0),
+                   get_limit("number_of_bpm", 1));
     print_argument("queue_size",
                    "size of queue accepting new packets.",
                    "queue_size 100.000",
-                   param_limits.queue_size[0],
-                   param_limits.queue_size[1]);
+                   get_limit("queue_size", 0),
+                   get_limit("queue_size", 1));
     print_argument("file_entries",
                    "numbre of file entries in file when saving to file.",
                    "file_entries 500",
-                   param_limits.file_entries[0],
-                   param_limits.file_entries[1]);
+                   get_limit("file_entries", 0),
+                   get_limit("file_entries", 1));
     print_argument("ip",
                    "set the ip of machine to connect to",
                    "ip 127.0.0.1", -1, -1);
@@ -182,10 +182,10 @@ int main(int argc , char *argv[])
     // variable preventing from creating multiple receiver threads
     int receive = 0;
     // default setup for parameters
-    parameters params = {.queue_size = param_limits.queue_size[0],
+    parameters params = {.queue_size = get_limit("queue_size", 0),
                          .number_of_packets = 1000,
                          .number_of_bpm = 1,
-                         .file_entries = param_limits.file_entries[0],
+                         .file_entries = get_limit("file_entries", 0),
                          .number_of_fields = 3,
                          .size_of_field = 4,
                          .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},

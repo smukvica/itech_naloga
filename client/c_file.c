@@ -95,9 +95,9 @@ void *file_writer(void *args){
     temp.file_write = false;
     char filename[512];  // save file
     int file_num = 0;   // current file number
-    char data[(param_limits.number_of_fields[1] * 
-               param_limits.size_of_field[1] + 4) * 
-               param_limits.file_entries[1]];
+    char data[(get_limit("number_of_fields", 1) * 
+               get_limit("size_of_field", 1) + 4) * 
+               get_limit("file_entries", 1)];
     
     mkdir(params->save_folder, 0777);
     while(1){

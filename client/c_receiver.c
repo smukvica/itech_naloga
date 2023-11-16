@@ -22,8 +22,8 @@ void *read_package(void *arguments){
     parameters *params = arguments;
     struct sockaddr_in server;
     int socket_desc;
-    char server_reply[param_limits.number_of_fields[1] * 
-                      param_limits.size_of_field[1] + 4];
+    char server_reply[get_limit("number_of_fields", 1) * 
+                      get_limit("size_of_field", 1) + 4];
 	
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_desc == -1)

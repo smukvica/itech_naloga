@@ -64,7 +64,8 @@ void check_package_order(parameters params, int bpm_id, int package_id){
 
 void *output_package(void *args){
     parameters *params = (parameters *)args;
-    char data[param_limits.number_of_fields[1] * param_limits.size_of_field[1] + 4];
+    char data[get_limit("number_of_fields", 1) * 
+              get_limit("size_of_field", 1) + 4];
     for(int i = 0; i < params->number_of_fields; i++){
         printf("%s\t", params->names[i]);
     }

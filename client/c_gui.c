@@ -403,8 +403,8 @@ void *gui_setup(void *args){
 	//--------------------------------------------------------------------------------------
 
     // data field to store samples
-    char data[(param_limits.number_of_fields[1] * 
-               param_limits.size_of_field[1] + 4) * samples];
+    char data[(get_limit("number_of_fields", 1) * 
+               get_limit("size_of_field", 1) + 4) * samples];
     char corrupt_packages[32];
 
     create_texture(*params);
@@ -474,7 +474,7 @@ void *gui_setup(void *args){
             if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
                         NULL, 
                         &params->port, 
-                        0, 
+                        1025, 
                         1000000, 
                         variables[6] & can_change)) variables[6] = !variables[6];
             for(int i = 0; i < 4; i++){
@@ -488,32 +488,32 @@ void *gui_setup(void *args){
             if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, 
                 NULL, 
                 &params->file_entries,
-                param_limits.file_entries[0], 
-                param_limits.file_entries[1], 
+                get_limit("file_entries", 0), 
+                get_limit("file_entries", 1), 
                 variables[4] & can_change)) variables[4] = !variables[4];
             if (GuiIntBox((Rectangle){ 10, 145, 100, 20 }, 
                 NULL, 
                 &params->number_of_bpm,
-                param_limits.number_of_bpm[0], 
-                param_limits.number_of_bpm[1], 
+                get_limit("number_of_bpm", 0), 
+                get_limit("number_of_bpm", 1), 
                 variables[3] & can_change)) variables[3] = !variables[3];
             if (GuiIntBox((Rectangle){ 10, 105, 100, 20 }, 
                 NULL, 
                 &params->queue_size, 
-                param_limits.queue_size[0], 
-                param_limits.queue_size[1], 
+                get_limit("queue_size", 0), 
+                get_limit("queue_size", 1), 
                 variables[2] & can_change)) variables[2] = !variables[2];
             if (GuiIntBox((Rectangle){ 10, 65, 100, 20 },
                 NULL, 
                 &params->size_of_field,
-                param_limits.size_of_field[0], 
-                param_limits.size_of_field[1], 
+                get_limit("size_of_field", 0), 
+                get_limit("size_of_field", 1), 
                 variables[1] & can_change)) variables[1] = !variables[1];
             if (GuiIntBox((Rectangle){ 10, 25, 100, 20}, 
                 NULL, 
                 &params->number_of_fields, 
-                param_limits.number_of_fields[0], 
-                param_limits.number_of_fields[1], 
+                get_limit("number_of_fields", 0), 
+                get_limit("number_of_fields", 1), 
                 variables[0] & can_change)) variables[0] = !variables[0];
 
             DrawText("Field names", 130, 10, 10, DARKGRAY);
