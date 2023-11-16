@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "c_includes.h"
+#include "c_includes.c"
 #include "c_queue.c"
 #include "c_output.c"
 #include "c_file.c"
@@ -7,10 +7,10 @@
 int program_terminate = 0;
 int trace = 0;
 
-parameters params = {.queue_size = param_limits.queue_size[0],
+parameters params = {.queue_size = 200000,
                         .number_of_packets = 1000,
                         .number_of_bpm = 1,
-                        .file_entries = param_limits.file_entries[0],
+                        .file_entries = 500,
                         .number_of_fields = 3,
                         .size_of_field = 4,
                         .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
@@ -53,7 +53,7 @@ TEST(Queue, WriteToQueue) {
 
 TEST(Queue, WriteFromQueueOutput) {
     extern int writer_index;
-    writer_index = 1;
+    writer_index = 2;
     extern int reader_index[4];
     extern char *queue;
     char data[(params.size_of_field * params.number_of_fields + 4)];
@@ -71,7 +71,7 @@ TEST(Queue, WriteFromQueueOutput) {
 
 TEST(Queue, WriteFromQueueGui) {
     extern int writer_index;
-    writer_index = 500;
+    writer_index = 501;
     extern int reader_index[4];
     extern char *queue;
     char data[(params.size_of_field * params.number_of_fields + 4) * 500];
@@ -136,4 +136,16 @@ TEST(File, ReadingConfig) {
     EXPECT_STREQ(params.names[2], "c");
     EXPECT_STREQ(params.names[3], "d");
     EXPECT_STREQ(params.names[4], "e");
+}
+
+TEST(Limits, CheckParameter) {
+    EXPECT_EQ(check_parameter_limits("queue_size", 500000), 0);
+}
+
+TEST(Limits, CheckParameterNonExistent) {
+    EXPECT_EQ(check_parameter_limits("blabla", 0), 0);
+}
+
+TEST(Limits, GetLimit) {
+    EXPECT_EQ(get_limit("file_entries", 0), 500);
 }

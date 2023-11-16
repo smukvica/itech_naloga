@@ -10,8 +10,21 @@
 char *queue;
 int writer_index = 0;
 int reader_index[4] = {0, 0, 0, 0};
+int overflow = 0;
 
 sem_t semaphore_q;
+
+int index_is_smaller(int reader, int writer, int size, parameters params){
+    if(reader < writer){
+        if(reader + size <= writer)
+            return 1;
+    } else {
+        if((reader + size) % params.queue_size < (writer + size) % params.queue_size)
+            return 1;
+    }
+
+    return 0;
+}
 
 
 // writes data to queue
@@ -27,6 +40,7 @@ void write_to_queue(char *data, int size, int id, parameters params){
     writer_index += size;   // set writer index forward
     // keep it in range of max value
     writer_index %= params.queue_size;
+    printf("w: %d\n", writer_index);
     sem_post(&semaphore_q);
 }
 
@@ -34,16 +48,22 @@ void write_to_queue(char *data, int size, int id, parameters params){
 int get_from_queue(char *data, int size, int id, parameters params){
     // keep if we can get data from queue
     int can_write = 0;
+    int r, w;
 
     sem_wait(&semaphore_q);
-    // check if indices are valid
-    if((reader_index[id] + size) % params.queue_size < writer_index)
-        can_write = 1;
+    // save indices
+    r = reader_index[id];
+    w = writer_index;
     sem_post(&semaphore_q);
+
+    if(index_is_smaller(r, w, size, params))
+        can_write = 1;
+
 
     // we can get data
     if(can_write){
         // copy data
+        printf("r: %d w: %d\n", r, w);
         memcpy(data, 
                queue + reader_index[id] * 
                        (params.number_of_fields * params.size_of_field + 4),
