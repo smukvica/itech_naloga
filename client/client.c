@@ -99,24 +99,21 @@ int read_arguments(int argc, char *argv[], parameters *params){
     while(c < argc){
         if(strcmp(argv[c], "number_of_fields") == 0){
             params->number_of_fields = atoi(argv[c+1]);
-            if(params->number_of_fields < param_limits.number_of_fields[0] || 
-               params->number_of_fields > param_limits.number_of_fields[1]){
+            if(check_parameter_limits(argv[c], params->number_of_fields)){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "size_of_field") == 0){
             params->size_of_field = atoi(argv[c+1]);
-            if(params->size_of_field < param_limits.size_of_field[0] ||
-               params->size_of_field > param_limits.size_of_field[1]){
+            if(check_parameter_limits(argv[c], params->size_of_field)){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "queue_size") == 0){
             params->queue_size = atoi(argv[c+1]);
-            if(params->queue_size < param_limits.queue_size[0] || 
-               params->queue_size > param_limits.queue_size[1]){
+            if(check_parameter_limits(argv[c], params->queue_size)){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
@@ -126,16 +123,14 @@ int read_arguments(int argc, char *argv[], parameters *params){
         }
         if(strcmp(argv[c], "number_of_bpm") == 0){
             params->number_of_bpm = atoi(argv[c+1]);
-            if(params->number_of_bpm < param_limits.number_of_bpm[0] || 
-               params->number_of_bpm > param_limits.number_of_bpm[1]){
+            if(check_parameter_limits(argv[c], params->number_of_bpm)){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }
         }
         if(strcmp(argv[c], "file_entries") == 0){
             params->file_entries = atoi(argv[c+1]);
-            if(params->file_entries < param_limits.file_entries[0] || 
-               params->file_entries > param_limits.file_entries[1]){
+            if(check_parameter_limits(argv[c], params->file_entries)){
                 printf("wrong usage of argument %s. see help\n", argv[c]);
                 return 1;
             }

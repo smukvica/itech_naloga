@@ -64,24 +64,19 @@ void load_params(const char *file, parameters *params){
         else
             param_error = 1;
         
-        if(params->number_of_fields < param_limits.number_of_fields[0] || 
-           params->number_of_fields > param_limits.number_of_fields[1]){
+        if(check_parameter_limits("number_of_fields", params->number_of_fields)){
             param_error = 1;
         }
-        if(params->size_of_field < param_limits.size_of_field[0] ||
-           params->size_of_field > param_limits.size_of_field[1]){
+        if(check_parameter_limits("size_of_field", params->size_of_field)){
             param_error = 1;
         }
-        if(params->queue_size < param_limits.queue_size[0] || 
-           params->queue_size > param_limits.queue_size[1]){
+        if(check_parameter_limits("queue_size", params->queue_size)){
             param_error = 1;
         }
-        if(params->number_of_bpm < param_limits.number_of_bpm[0] || 
-           params->number_of_bpm > param_limits.number_of_bpm[1]){
+        if(check_parameter_limits("number_of_bpm", params->number_of_bpm)){
             param_error = 1;
         }
-        if(params->file_entries < param_limits.file_entries[0] || 
-           params->file_entries > param_limits.file_entries[1]){
+        if(check_parameter_limits("file_entries", params->file_entries)){
             param_error = 1;
         }
         if(param_error)

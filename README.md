@@ -30,6 +30,7 @@ The client has a similar set of parameters as the server with an addition of a c
 * ***writer*** - set saving to files (**true** to save, **false** not to save)
 * ***output*** - set writing to standard out (**true** to write, **false** not to write)
 * ***folder*** - set the saving folder for files *ex. files/*
+* ***-trace*** - command line argument only. used to print function entries in program execution.
 
 Final *n* arguments are meant to be the names for the data fields. The names should be given as one name one argument.
 

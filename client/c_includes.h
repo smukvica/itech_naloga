@@ -3,6 +3,11 @@
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
+
+// returns 0 if parameter is within limits
+// returns 1 if parameter is out of limits
+int check_parameter_limits(const char *parameter, int value);
+
 extern int trace;
 
 typedef struct parameters{
