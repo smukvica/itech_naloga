@@ -115,17 +115,19 @@ void *file_writer(void *args){
         }
         if(trace)
             printf("writing to file\n");
-        // data aquired set filename, open file and write to it
-        sprintf(filename, "%sfile_%05d.bin", params->save_folder, file_num);
-        f = fopen(filename,"wb");
-        fwrite(&temp, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
-        fwrite(data, 
-               (sizeof(char) * params->number_of_fields * params->size_of_field + 4), 
-               params->file_entries, 
-               f);
-        fclose(f);
+        if(params->file_write == true){
+            // data aquired set filename, open file and write to it
+            sprintf(filename, "%sfile_%05d.bin", params->save_folder, file_num);
+            f = fopen(filename,"wb");
+            fwrite(&temp, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
+            fwrite(data, 
+                (sizeof(char) * params->number_of_fields * params->size_of_field + 4), 
+                params->file_entries, 
+                f);
+            fclose(f);
 
-        file_num++;
+            file_num++;
+        }
     }
 }
 
