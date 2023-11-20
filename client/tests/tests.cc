@@ -7,22 +7,21 @@
 #include "../src/c_includes.c"
 #include "../src/c_output.c"
 #include "../src/c_queue.c"
-//#include "../src/c_receiver.c"
 
 int trace = 0;
 int program_terminate = 0;
 
 parameters params = {.queue_size = 200000,
-                        .number_of_packets = 1000,
-                        .number_of_bpm = 1,
-                        .file_entries = 500,
-                        .number_of_fields = 3,
-                        .size_of_field = 4,
-                        .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
-                        .file_write = true,
-                        .std_output = true,
-                        .port = 8888,
-                        .ip = {127, 0, 0, 1}};
+                     .number_of_packets = 1000,
+                     .number_of_bpm = 1,
+                     .file_entries = 500,
+                     .number_of_fields = 3,
+                     .size_of_field = 4,
+                     .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
+                     .file_write = true,
+                     .std_output = true,
+                     .port = 8888,
+                     .ip = {127, 0, 0, 1}};
 
 TEST(Queue, IndexUpdate) {
     set_writer_index(542);
@@ -107,11 +106,31 @@ TEST(Queue, WriteFromQueueGuiOverflow) {
     }
     get_from_queue(&data[0], 500, GUI, params);
     
+    int size_of_data = (params.number_of_fields * params.size_of_field + 4);
 
     EXPECT_EQ(get_reader_index(GUI), 250);
-    for(int i = 0; i < (params.size_of_field * params.number_of_fields + 4) * 500; i++){
-        printf("%d %d\n", (199750 + i) % params.queue_size, i);
-        EXPECT_EQ(get_queue((199750 + i) % params.queue_size), data[i]);
+    for(int i = 0; i < 500; i++){
+        EXPECT_EQ(get_queue(((199750 + i) % params.queue_size) * size_of_data), data[i * size_of_data]);
+    }
+    free_queue();
+}
+
+TEST(Queue, WriteFromQueueGuiMaxLimit) {
+    set_writer_index(300);
+    set_reader_index(GUI, 199500);
+    char data[(params.size_of_field * params.number_of_fields + 4) * 500] = { 0 };
+
+    setup_queue(params);
+    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+        set_queue(i, i % 256);
+    }
+    get_from_queue(&data[0], 500, GUI, params);
+    
+    int size_of_data = (params.number_of_fields * params.size_of_field + 4);
+
+    EXPECT_EQ(get_reader_index(GUI), 0);
+    for(int i = 0; i < 500; i++){
+        EXPECT_EQ(get_queue(((199500 + i) % params.queue_size) * size_of_data), data[i * size_of_data]);
     }
     free_queue();
 }
