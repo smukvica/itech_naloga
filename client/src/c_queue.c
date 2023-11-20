@@ -17,8 +17,8 @@ int index_is_smaller(int reader, int writer, int size, parameters params){
     if(reader < writer){
         if(reader + size <= writer)
             return 1;
-    } else {
-        if((reader + size) % params.queue_size < (writer + size) % params.queue_size)
+    } else if(reader > writer){
+        if(reader + size < (writer + params.queue_size))
             return 1;
     }
 

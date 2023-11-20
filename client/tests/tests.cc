@@ -10,6 +10,10 @@
 
 int trace = 0;
 int program_terminate = 0;
+int setup_complete = 0;
+char filename[100];
+int read_file = 0;
+int start_stop= 0;
 
 parameters params = {.queue_size = 200000,
                      .number_of_packets = 1000,
@@ -22,6 +26,30 @@ parameters params = {.queue_size = 200000,
                      .std_output = true,
                      .port = 8888,
                      .ip = {127, 0, 0, 1}};
+
+TEST(Queue, CanWriteCheck){
+    setup_queue(params);
+    // both indexes are 0
+    EXPECT_EQ(index_is_smaller(0, 0, 1, params), 0);
+
+    // both indexes are 0, size bigger
+    EXPECT_EQ(index_is_smaller(0, 0, 10000, params), 0);
+
+    // reader is bigger, size 1 - overflow
+    EXPECT_EQ(index_is_smaller(199950, 100, 1, params), 1);
+
+    // reader is bigger, size bigger - overflow
+    EXPECT_EQ(index_is_smaller(199950, 100, 10000, params), 0);
+
+    // writer is bigger, size one
+    EXPECT_EQ(index_is_smaller(100, 500, 1, params), 1);
+
+    // writer is bigger, size bigger
+    EXPECT_EQ(index_is_smaller(100, 500, 100, params), 1);
+
+    // writer is bigger, size bigger
+    EXPECT_EQ(index_is_smaller(100, 500, 1000, params), 0);
+}
 
 TEST(Queue, IndexUpdate) {
     set_writer_index(542);
@@ -74,6 +102,26 @@ TEST(Queue, WriteFromQueueOutput) {
     EXPECT_EQ(get_reader_index(OUTPUT), 1);
     for(int i = 0; i < params.size_of_field * params.number_of_fields + 4; i++){
         EXPECT_EQ(get_queue(i), data[i]);
+    }
+    free_queue();
+}
+
+TEST(Queue, WriteFromQueueOutputOverflow) {
+    char data[(params.size_of_field * params.number_of_fields + 4)] = {22};
+
+    set_writer_index(100);
+    set_reader_index(OUTPUT, 199950);
+
+    setup_queue(params);
+    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+        set_queue(i, i % 256);
+    }
+    for(int i = 0; i < 100;i++){
+        get_from_queue(&data[0], 1, OUTPUT, params);
+        
+        for(int j = 0; j < (params.size_of_field * params.number_of_fields + 4); j++){
+            EXPECT_EQ(get_queue(((199950 + i) % params.queue_size) * (params.size_of_field * params.number_of_fields + 4) + j), data[j]);
+        }
     }
     free_queue();
 }
