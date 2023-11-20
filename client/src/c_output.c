@@ -22,25 +22,25 @@ int previously_error = 0;
 extern int program_terminate;
 
 // checks if 2 consecutive packages are in order
-void check_package_order(parameters params, int bpm_id, int package_id){
+void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
     if(check_bpm == -1) // no packages checked before
-        check_bpm = bpm_id;
+        check_bpm = a_bpm_id;
     else{
         // expected value is different from actual
-        if(check_bpm != bpm_id){    
+        if(check_bpm != a_bpm_id){    
             printf("zaporedje bpm napačno\n");
             bpm_errors++;
         }
         // update expected value for next package
-        check_bpm = (bpm_id + 1) % params.number_of_bpm; 
+        check_bpm = (a_bpm_id + 1) % a_params.number_of_bpm; 
     }
     
     if(check_packet_num == -1) // no packages checked before
-        check_packet_num = package_id;
+        check_packet_num = a_package_id;
     else{
         // expected value is different from actual or 
         // number is larger than max available bits
-        if(check_packet_num + 1 != package_id && check_packet_num != 65535){ 
+        if(check_packet_num + 1 != a_package_id && check_packet_num != 65535){ 
             printf("zaporedje paketov napačno\n");
             if(previously_error == 0){  // first wrong package
                 previously_error = 1;
@@ -53,7 +53,7 @@ void check_package_order(parameters params, int bpm_id, int package_id){
             previously_error = 0;
             number_of_consecutive_errors = 0;
         }
-        check_packet_num = package_id;
+        check_packet_num = a_package_id;
     }
     // if consecutive errors > 100 terminate
     if(number_of_consecutive_errors > 100){ 
@@ -61,8 +61,8 @@ void check_package_order(parameters params, int bpm_id, int package_id){
     }
 }
 
-void *output_package(void *args){
-    parameters *params = (parameters *)args;
+void *output_package(void *a_args){
+    parameters *params = (parameters *)a_args;
     char data[get_limit("number_of_fields", 1) * 
               get_limit("size_of_field", 1) + 4];
     for(int i = 0; i < params->number_of_fields; i++){

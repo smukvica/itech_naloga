@@ -7,20 +7,20 @@
 #define OUTPUT 2
 #define GUI 3
 
-void write_to_queue(char *data, int size, int id, parameters params);
-int get_from_queue(char *data, int size, int id, parameters params);
+void write_to_queue(char *a_data, int a_size, int a_id, parameters a_params);
+int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params);
 
-void setup_queue(parameters params);
+void setup_queue(parameters a_params);
 void free_queue();
 void reset_queue();
-void update_queue_index(int id, parameters params);
-int index_is_smaller(int reader, int writer, int size, parameters params);
+void update_queue_index(int a_id, parameters a_params);
+int index_is_smaller(int a_reader, int a_writer, int a_size, parameters a_params);
 
 #ifndef NDEBUG
-void set_writer_index(int v);
+void set_writer_index(int a_v)
 int get_writer_index();
-void set_reader_index(int id, int v);
-int get_reader_index(int id);
-void set_queue(int i, char v);
-char get_queue(int i);
+void set_reader_index(int a_id, int a_v);
+int get_reader_index(int a_id);
+void set_queue(int a_i, char a_v);
+char get_queue(int a_i);
 #endif

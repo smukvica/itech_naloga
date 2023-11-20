@@ -31,14 +31,14 @@ extern int received_packages;
 char filename[100];
 
 // prints argument description using a set format
-void print_argument(const char *arg, const char *explain, const char *usage, 
-                    int limit_l, int limit_u){
-    printf("%s\n", arg);
-    printf("\t%s", explain);
-    if(limit_l != -1 && limit_u != -1)
-        printf(" limited from %d to %d.", limit_l, limit_u);
+void print_argument(const char *a_arg, const char *a_explain, const char *a_usage, 
+                    int a_limit_l, int a_limit_u){
+    printf("%s\n", a_arg);
+    printf("\t%s", a_explain);
+    if(a_limit_l != -1 && a_limit_u != -1)
+        printf(" limited from %d to %d.", a_limit_l, a_limit_u);
 
-    printf("\n\texample:\t%s\n", usage);
+    printf("\n\texample:\t%s\n", a_usage);
 }
 
 // prints all argument descriptions
@@ -94,86 +94,86 @@ void print_help(){
 }
 
 // reads arguments into parameters
-int read_arguments(int argc, char *argv[], parameters *params){
+int read_arguments(int a_argc, char *a_argv[], parameters *a_params){
     int c = 1;
-    while(c < argc){
-        if(strcmp(argv[c], "number_of_fields") == 0){
-            params->number_of_fields = atoi(argv[c+1]);
-            if(check_parameter_limits(argv[c], params->number_of_fields)){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+    while(c < a_argc){
+        if(strcmp(a_argv[c], "number_of_fields") == 0){
+            a_params->number_of_fields = atoi(a_argv[c+1]);
+            if(check_parameter_limits(a_argv[c], a_params->number_of_fields)){
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
                 return 1;
             }
         }
-        if(strcmp(argv[c], "size_of_field") == 0){
-            params->size_of_field = atoi(argv[c+1]);
-            if(check_parameter_limits(argv[c], params->size_of_field)){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+        if(strcmp(a_argv[c], "size_of_field") == 0){
+            a_params->size_of_field = atoi(a_argv[c+1]);
+            if(check_parameter_limits(a_argv[c], a_params->size_of_field)){
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
                 return 1;
             }
         }
-        if(strcmp(argv[c], "queue_size") == 0){
-            params->queue_size = atoi(argv[c+1]);
-            if(check_parameter_limits(argv[c], params->queue_size)){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+        if(strcmp(a_argv[c], "queue_size") == 0){
+            a_params->queue_size = atoi(a_argv[c+1]);
+            if(check_parameter_limits(a_argv[c], a_params->queue_size)){
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
                 return 1;
             }
         }
-        if(strcmp(argv[c], "number_of_packets") == 0){
-            params->number_of_packets = atoi(argv[c+1]);
+        if(strcmp(a_argv[c], "number_of_packets") == 0){
+            a_params->number_of_packets = atoi(a_argv[c+1]);
         }
-        if(strcmp(argv[c], "number_of_bpm") == 0){
-            params->number_of_bpm = atoi(argv[c+1]);
-            if(check_parameter_limits(argv[c], params->number_of_bpm)){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+        if(strcmp(a_argv[c], "number_of_bpm") == 0){
+            a_params->number_of_bpm = atoi(a_argv[c+1]);
+            if(check_parameter_limits(a_argv[c], a_params->number_of_bpm)){
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
                 return 1;
             }
         }
-        if(strcmp(argv[c], "file_entries") == 0){
-            params->file_entries = atoi(argv[c+1]);
-            if(check_parameter_limits(argv[c], params->file_entries)){
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+        if(strcmp(a_argv[c], "file_entries") == 0){
+            a_params->file_entries = atoi(a_argv[c+1]);
+            if(check_parameter_limits(a_argv[c], a_params->file_entries)){
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
                 return 1;
             }
         }
-        if(strcmp(argv[c], "ip") == 0){
-            sscanf(argv[c+1], "%d.%d.%d.%d", &params->ip[0], 
-                                             &params->ip[1], 
-                                             &params->ip[2], 
-                                             &params->ip[3]);
+        if(strcmp(a_argv[c], "ip") == 0){
+            sscanf(a_argv[c+1], "%d.%d.%d.%d", &a_params->ip[0], 
+                                               &a_params->ip[1], 
+                                               &a_params->ip[2], 
+                                               &a_params->ip[3]);
         }
-        if(strcmp(argv[c], "port") == 0){
-            params->port = atoi(argv[c+1]);
+        if(strcmp(a_argv[c], "port") == 0){
+            a_params->port = atoi(a_argv[c+1]);
         }
-        if(strcmp(argv[c], "writer") == 0){
-            if(strcmp(argv[c+1], "true") == 0)
-                params->file_write = true;
-            else if(strcmp(argv[c+1], "false") == 0)
-                params->file_write = false;
+        if(strcmp(a_argv[c], "writer") == 0){
+            if(strcmp(a_argv[c+1], "true") == 0)
+                a_params->file_write = true;
+            else if(strcmp(a_argv[c+1], "false") == 0)
+                a_params->file_write = false;
             else
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
         }
-        if(strcmp(argv[c], "output") == 0){
-            if(strcmp(argv[c+1], "true") == 0)
-                params->std_output = true;
-            else if(strcmp(argv[c+1], "false") == 0)
-                params->std_output = false;
+        if(strcmp(a_argv[c], "output") == 0){
+            if(strcmp(a_argv[c+1], "true") == 0)
+                a_params->std_output = true;
+            else if(strcmp(a_argv[c+1], "false") == 0)
+                a_params->std_output = false;
             else
-                printf("wrong usage of argument %s. see help\n", argv[c]);
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
         }
-        if(strcmp(argv[c], "folder") == 0){
-            strcpy(params->save_folder, argv[c+1]);
+        if(strcmp(a_argv[c], "folder") == 0){
+            strcpy(a_params->save_folder, a_argv[c+1]);
         }
-        if(strcmp(argv[c], "-trace") == 0){
+        if(strcmp(a_argv[c], "-trace") == 0){
             trace = 1;
             c--;
         }
         c += 2;
     }
-    if(argc >= c + params->number_of_fields)
-        for(int k = 0; k < params->number_of_fields; k++){
-            if(strlen(argv[c+k]) >= 32)
-                argv[c+k][31] = '\0';
-            strcpy(params->names[k], argv[c+k]);
+    if(a_argc >= c + a_params->number_of_fields)
+        for(int k = 0; k < a_params->number_of_fields; k++){
+            if(strlen(a_argv[c+k]) >= 32)
+                a_argv[c+k][31] = '\0';
+            strcpy(a_params->names[k], a_argv[c+k]);
         }
 }
 

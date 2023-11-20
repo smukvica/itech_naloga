@@ -13,12 +13,12 @@ int reader_index[4] = {0, 0, 0, 0};
 
 sem_t semaphore_q;
 
-int index_is_smaller(int reader, int writer, int size, parameters params){
-    if(reader < writer){
-        if(reader + size <= writer)
+int index_is_smaller(int a_reader, int a_writer, int a_size, parameters a_params){
+    if(a_reader < a_writer){
+        if(a_reader + a_size <= a_writer)
             return 1;
-    } else if(reader > writer){
-        if(reader + size < (writer + params.queue_size))
+    } else if(a_reader > a_writer){
+        if(a_reader + a_size < (a_writer + a_params.queue_size))
             return 1;
     }
 
@@ -26,74 +26,74 @@ int index_is_smaller(int reader, int writer, int size, parameters params){
 }
 
 
-// writes data to queue
-// only writer thread and receiver thread write (not at same time)
-void write_to_queue(char *data, int size, int id, parameters params){
-    int size_of_data = (params.number_of_fields * params.size_of_field + 4);
-    // copy data to queue
+// writes a_data to queue
+// only a_writer thread and receiver thread write (not at same time)
+void write_to_queue(char *a_data, int a_size, int a_id, parameters a_params){
+    int size_of_data = (a_params.number_of_fields * a_params.size_of_field + 4);
+    // copy a_data to queue
     memcpy(queue + writer_index * size_of_data,
-           data, 
-           size_of_data * size);
+           a_data, 
+           size_of_data * a_size);
     // semaphore to avoid multiple access to queue index
     sem_wait(&semaphore_q);
-    writer_index += size;   // set writer index forward
+    writer_index += a_size;   // set a_writer index forward
     // keep it in range of max value
-    writer_index %= params.queue_size;
+    writer_index %= a_params.queue_size;
     sem_post(&semaphore_q);
 }
 
-// gets data from queue
-int get_from_queue(char *data, int size, int id, parameters params){
-    // keep if we can get data from queue
+// gets a_data from queue
+int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
+    // keep if we can get a_data from queue
     int can_write = 0;
     int r, w;
 
     sem_wait(&semaphore_q);
     // save indices
-    r = reader_index[id];
+    r = reader_index[a_id];
     w = writer_index;
     sem_post(&semaphore_q);
 
-    if(index_is_smaller(r, w, size, params))
+    if(index_is_smaller(r, w, a_size, a_params))
         can_write = 1;
 
-    // we can get data
+    // we can get a_data
     if(can_write){
-        int size_of_data = (params.number_of_fields * params.size_of_field + 4);
+        int size_of_data = (a_params.number_of_fields * a_params.size_of_field + 4);
         int i1, s1, i2, s2;
-        // index of first chunk is current reader index
+        // index of first chunk is current a_reader index
         i1 = r;
-        // get size of first chunk
-        // if index + size goes over we split the reading into two parts
-        s1 = (params.queue_size - size >= r) ? size : params.queue_size - r;
+        // get a_size of first chunk
+        // if index + a_size goes over we split the reading into two parts
+        s1 = (a_params.queue_size - a_size >= r) ? a_size : a_params.queue_size - r;
         // index of second chunk is beggining of queue - 0
         i2 = 0;
-        // size of second chunk
-        // difference between requested size and first chunk size
-        s2 = size - s1;
+        // a_size of second chunk
+        // difference between requested a_size and first chunk a_size
+        s2 = a_size - s1;
 
-        // copy data
-        memcpy(data, queue + i1 * size_of_data, size_of_data * s1);
+        // copy a_data
+        memcpy(a_data, queue + i1 * size_of_data, size_of_data * s1);
         if(s2 != 0) // only copy if there is something to copy
-            memcpy(data + size_of_data * s1, 
+            memcpy(a_data + size_of_data * s1, 
                    queue, 
                    size_of_data * s2);
         // update index
-        reader_index[id] += size;
+        reader_index[a_id] += a_size;
         // keep index in range
-        reader_index[id] %= params.queue_size;
-        // data copy successful return 0
+        reader_index[a_id] %= a_params.queue_size;
+        // a_data copy successful return 0
         return 0;
     }
-    // returns 1 if data copy wasn't possible
+    // returns 1 if a_data copy wasn't possible
     return 1;
 }
 
-void setup_queue(parameters params){
+void setup_queue(parameters a_params){
     queue = (char*)malloc((sizeof(char) * 
-                    params.number_of_fields * 
-                    params.size_of_field + 4) * 
-                    params.queue_size);
+                    a_params.number_of_fields * 
+                    a_params.size_of_field + 4) * 
+                    a_params.queue_size);
 
     sem_init(&semaphore_q, 0, 1);
 }
@@ -114,36 +114,36 @@ void reset_queue(){
 }
 
 // updates the queue index to most recent entry - only GUI usage
-void update_queue_index(int id, parameters params){
+void update_queue_index(int a_id, parameters a_params){
     sem_wait(&semaphore_q);
-    reader_index[id] = writer_index - 500;
-    if(reader_index[id] < 0)
-        reader_index[id] += params.queue_size;
+    reader_index[a_id] = writer_index - 500;
+    if(reader_index[a_id] < 0)
+        reader_index[a_id] += a_params.queue_size;
     sem_post(&semaphore_q);
 }
 
 #ifndef NDEBUG
-void set_writer_index(int v){
-    writer_index = v;
+void set_writer_index(int a_v){
+    writer_index = a_v;
 }
 
 int get_writer_index(){
     return writer_index;
 }
 
-void set_reader_index(int id, int v){
-    reader_index[id] = v;
+void set_reader_index(int a_id, int a_v){
+    reader_index[a_id] = a_v;
 }
 
-int get_reader_index(int id){
-    return reader_index[id];
+int get_reader_index(int a_id){
+    return reader_index[a_id];
 }
 
-void set_queue(int i, char v){
-    queue[i] = v;
+void set_queue(int a_i, char a_v){
+    queue[a_i] = a_v;
 }
 
-char get_queue(int i){
-    return queue[i];
+char get_queue(int a_i){
+    return queue[a_i];
 }
 #endif

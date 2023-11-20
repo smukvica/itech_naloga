@@ -2,8 +2,8 @@
 
 #include "c_includes.h"
 
-void check_package_order(parameters params, int bpm_id, int package_id);
-void *output_package(void *args);
+void check_package_order(parameters a_params, int a_bpm_id, int a_package_id);
+void *output_package(void *a_args);
 void reset_package_order();
 
 #ifndef NDEBUG

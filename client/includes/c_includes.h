@@ -6,8 +6,8 @@
 
 // returns 0 if parameter is within limits
 // returns 1 if parameter is out of limits
-int check_parameter_limits(const char *parameter, int value);
-int get_limit(const char *parameter, int lower_upper);
+int check_parameter_limits(const char *a_parameter, int a_value);
+int get_limit(const char *a_parameter, int a_lower_upper);
 
 extern int trace;
 

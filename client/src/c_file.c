@@ -11,9 +11,9 @@
 extern int program_terminate;
 
 // loads parameters from file
-void load_params(const char *file, parameters *params){
+void load_params(const char *a_file, parameters *a_params){
     FILE *f;
-    f = fopen(file, "rb");
+    f = fopen(a_file, "rb");
     char *line = NULL;
     ssize_t read;
     size_t len = 0;
@@ -22,18 +22,18 @@ void load_params(const char *file, parameters *params){
     // if file doesn't exist don't read
     if(f != NULL){
         while ((read = getline(&line, &len, f)) != -1) {
-            sscanf(line, "number_of_fields: %d", &params->number_of_fields);
-            sscanf(line, "size_of_field: %d", &params->size_of_field);
-            sscanf(line, "queue_size: %d", &params->queue_size);
-            sscanf(line, "number_of_packets: %d", &params->number_of_packets);
-            sscanf(line, "number_of_bpm: %d", &params->number_of_bpm);
-            sscanf(line, "file_entries: %d", &params->file_entries);
-            sscanf(line, "ip: %d.%d.%d.%d", &params->ip[0], &params->ip[1], 
-                                            &params->ip[2], &params->ip[3]);
-            sscanf(line, "port: %d", &params->port);
+            sscanf(line, "number_of_fields: %d", &a_params->number_of_fields);
+            sscanf(line, "size_of_field: %d", &a_params->size_of_field);
+            sscanf(line, "queue_size: %d", &a_params->queue_size);
+            sscanf(line, "number_of_packets: %d", &a_params->number_of_packets);
+            sscanf(line, "number_of_bpm: %d", &a_params->number_of_bpm);
+            sscanf(line, "file_entries: %d", &a_params->file_entries);
+            sscanf(line, "ip: %d.%d.%d.%d", &a_params->ip[0], &a_params->ip[1], 
+                                            &a_params->ip[2], &a_params->ip[3]);
+            sscanf(line, "port: %d", &a_params->port);
             sscanf(line, "output: %s", tf_values[0]);
             sscanf(line, "writer: %s", tf_values[1]);
-            sscanf(line, "folder: %s", &params->save_folder[0]);
+            sscanf(line, "folder: %s", &a_params->save_folder[0]);
             sscanf(line, "names: %329c", names);
         }
 
@@ -44,7 +44,7 @@ void load_params(const char *file, parameters *params){
         while(temp != NULL){
             if(strlen(temp) >= 32)
                 temp[31] = '\0';
-            strcpy(params->names[i], temp);
+            strcpy(a_params->names[i], temp);
             temp = strtok(NULL, " ");
             i++;
         }
@@ -52,31 +52,31 @@ void load_params(const char *file, parameters *params){
         int param_error = 0;
 
         if(strcmp(tf_values[0], "true") == 0)
-            params->std_output = true;
+            a_params->std_output = true;
         else if(strcmp(tf_values[0], "false") == 0)
-            params->std_output = false;
+            a_params->std_output = false;
         else
             param_error = 1;
         if(strcmp(tf_values[1], "true") == 0)
-            params->file_write = true;
+            a_params->file_write = true;
         else if(strcmp(tf_values[1], "false") == 0)
-            params->file_write = false;
+            a_params->file_write = false;
         else
             param_error = 1;
         
-        if(check_parameter_limits("number_of_fields", params->number_of_fields)){
+        if(check_parameter_limits("number_of_fields", a_params->number_of_fields)){
             param_error = 1;
         }
-        if(check_parameter_limits("size_of_field", params->size_of_field)){
+        if(check_parameter_limits("size_of_field", a_params->size_of_field)){
             param_error = 1;
         }
-        if(check_parameter_limits("queue_size", params->queue_size)){
+        if(check_parameter_limits("queue_size", a_params->queue_size)){
             param_error = 1;
         }
-        if(check_parameter_limits("number_of_bpm", params->number_of_bpm)){
+        if(check_parameter_limits("number_of_bpm", a_params->number_of_bpm)){
             param_error = 1;
         }
-        if(check_parameter_limits("file_entries", params->file_entries)){
+        if(check_parameter_limits("file_entries", a_params->file_entries)){
             param_error = 1;
         }
         if(param_error)
@@ -86,9 +86,9 @@ void load_params(const char *file, parameters *params){
 }
 
 // writer thread function
-void *file_writer(void *args){
+void *file_writer(void *a_args){
     FILE *f;
-    parameters *params = (parameters *)args;
+    parameters *params = (parameters *)a_args;
     // write parameters without file_write
     parameters temp;
     memcpy(&temp, params, sizeof(parameters));
@@ -132,27 +132,27 @@ void *file_writer(void *args){
 }
 
 // read from file
-void file_reader(const char *file, parameters *params){
+void file_reader(const char *a_file, parameters *a_params){
     if(trace)
         printf("reading from file\n");
     FILE *f;
-    f = fopen(file, "rb");
+    f = fopen(a_file, "rb");
     if(f == NULL){
         printf("no file found\n");
         return;
     }
 
-    fread(params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
-    setup_queue(*params);
+    fread(a_params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
+    setup_queue(*a_params);
 
-    char buffer[(params->number_of_fields * params->size_of_field + 4) * 
-                 params->file_entries];
+    char buffer[(a_params->number_of_fields * a_params->size_of_field + 4) * 
+                 a_params->file_entries];
 
-    fread(buffer, (sizeof(char) * params->number_of_fields * 
-                   params->size_of_field + 4), params->file_entries, f);
+    fread(buffer, (sizeof(char) * a_params->number_of_fields * 
+                   a_params->size_of_field + 4), a_params->file_entries, f);
 
     // write data to queue
-    write_to_queue(buffer, params->file_entries, FILEW, *params);
+    write_to_queue(buffer, a_params->file_entries, FILEW, *a_params);
 
     fclose(f);
 }

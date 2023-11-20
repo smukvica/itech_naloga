@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16.3)
 project(itech_naloga)
 
 add_executable (
-    itech_naloga
+    client
     src/c_file.c
     src/c_gui.c
     src/c_includes.c
@@ -13,8 +13,8 @@ add_executable (
     src/c_receiver.c
 )
 
-target_include_directories(itech_naloga PRIVATE
+target_include_directories(client PRIVATE
     includes
 )
 
-target_link_libraries(itech_naloga -lraylib -lpthread -lm -fopenmp)
+target_link_libraries(client -lraylib -lpthread -lm -fopenmp)

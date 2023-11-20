@@ -13,12 +13,12 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-// size of generated texture, samples taken each timestep
-const int texture_size = 500;
-const int screen_size = 500;
-const int samples = 500;
+// size of generated g_texture, c_samples taken each timestep
+const int c_texture_size = 500;
+const int c_screen_size = 500;
+const int c_samples = 500;
 // control if new values are being drawn on screen or not
-bool refresh = true;
+bool g_refresh = true;
 
 extern int program_terminate;
 extern int setup_complete;
@@ -27,70 +27,66 @@ extern int read_file;
 extern int start_stop;
 extern unsigned int packet_errors;
 
-// texture data
-Image image;
-Texture2D texture;
-unsigned char *texture_data;
-int texture_width;
-int texture_height;
+// g_texture data
+Image g_image;
+Texture2D g_texture;
+unsigned char *g_texture_data;
 
-// current number of samples in texture
-int number_of_samples = 0;
+// current number of c_samples in g_texture
+int g_number_of_samples = 0;
 
 // limits given for different sizes of fields
-unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
+const unsigned int c_limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 
 enum mode {passive, receiver, file};
 enum mode current_mode = passive;
 
-// clears texture to default state - white with black lines dividing the fields
-void clear_texture(parameters params){
+// clears g_texture to default state - white with black lines dividing the fields
+void clear_texture(parameters a_params){
     if(trace)
-        printf("clearing texture\n");
-    for(int i = 0; i < texture_width; i++){
-        for(int j = 0; j < texture_height;j++){
-            if(j%(texture_height / params.number_of_fields) == 0 && j != 0)
-                texture_data[j * texture_width + i] = 127;
+        printf("clearing g_texture\n");
+    for(int i = 0; i < c_texture_size; i++){
+        for(int j = 0; j < c_screen_size;j++){
+            if(j%(c_screen_size / a_params.number_of_fields) == 0 && j != 0)
+                g_texture_data[j * c_texture_size + i] = 127;
             else
-                texture_data[j * texture_width + i] = 255;
+                g_texture_data[j * c_texture_size + i] = 255;
         }
     }
-    number_of_samples = 0;
+    g_number_of_samples = 0;
 }
 
 void create_texture(parameters params){
     if(trace)
-        printf("creating texture\n");
-    texture_width = texture_size;
-    texture_height = screen_size;
-    texture_data = (unsigned char*)malloc(sizeof(unsigned char) * 
-                                          texture_width * 
-                                          texture_height);
-    image = (Image){.data = texture_data, 
-                    .width = texture_width, 
-                    .height = texture_height, 
+        printf("creating g_texture\n");
+    g_texture_data = (unsigned char*)malloc(sizeof(unsigned char) * 
+                                          c_texture_size * 
+                                          c_screen_size);
+    g_image = (Image){.data = g_texture_data, 
+                    .width = c_texture_size, 
+                    .height = c_screen_size, 
                     .mipmaps = 1, 
                     .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
     //clear_texture(params);
-    for(int i = 0; i < texture_height * texture_width; i++){
-        texture_data[i] = 255;
+    for(int i = 0; i < c_texture_size * c_screen_size; i++){
+        g_texture_data[i] = 255;
     }
 }
 
 void delete_texture(){
     if(trace)
-        printf("deleting texture\n");
-    free(texture_data);
+        printf("deleting g_texture\n");
+    free(g_texture_data);
 }
 
 void create_image_from_data(char *data, parameters params){
     if(trace)
-        printf("updating texture\n");
+        printf("updating g_texture\n");
 
     unsigned int field_height;
     float field_ratio;
-    // loop through fetched samples and draw on texture
-    for(int k = 0; k < samples; k++){
+    // loop through fetched c_samples and draw on g_texture
+    for(int k = 0; k < c_samples; k++){
         // index of sample in char array
         int f = k * (params.size_of_field * params.number_of_fields + 4);
         // temporary variable for output
@@ -101,18 +97,18 @@ void create_image_from_data(char *data, parameters params){
                    &data[f + i * params.size_of_field], 
                    sizeof(char) * params.size_of_field);
             // calculate height of field in screen size
-            field_height = screen_size / params.number_of_fields;
+            field_height = c_screen_size / params.number_of_fields;
             // calculate position from 0 to 1 based on out and max value
-            field_ratio = out / (float)limits_of_data[params.size_of_field - 1];
+            field_ratio = out / (float)c_limits_of_data[params.size_of_field - 1];
             // field height - ratio because coordinates go down
             const unsigned int height_offset = field_height - 
                                                field_height * field_ratio;
-            // set texture data value to black where sample is located
-            texture_data[texture_width * 
-                         (height_offset + i * field_height) + 
-                         number_of_samples] = 0;
+            // set g_texture data value to black where sample is located
+            g_texture_data[c_texture_size * 
+                           (height_offset + i * field_height) + 
+                           g_number_of_samples] = 0;
         }
-        number_of_samples += 1;
+        g_number_of_samples += 1;
     }
 }
 
@@ -382,7 +378,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR); // no logs from raylib
     
-	InitWindow(350+texture_size, screen_size, "Client");
+	InitWindow(350+c_texture_size, c_screen_size, "Client");
 
     parameters *params = (parameters*)args;
 
@@ -397,13 +393,13 @@ void *gui_setup(void *args){
     bool can_change = true;
 	//--------------------------------------------------------------------------------------
 
-    // data field to store samples
+    // data field to store c_samples
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + 4) * samples];
+               get_limit("size_of_field", 1) + 4) * c_samples];
     char corrupt_packages[32];
 
     create_texture(*params);
-    texture = LoadTextureFromImage(image);
+    g_texture = LoadTextureFromImage(g_image);
 
 	// Main loop
 	while (!WindowShouldClose())
@@ -412,30 +408,30 @@ void *gui_setup(void *args){
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
 
-        if(setup_complete && refresh == true)
+        if(setup_complete && g_refresh == true)
         {
-            if(number_of_samples == screen_size){
+            if(g_number_of_samples == c_screen_size){
                 if(current_mode == file)
                     current_mode = passive;
-                number_of_samples = 0;
-                refresh = false;
+                g_number_of_samples = 0;
+                g_refresh = false;
             }else{
                 // get data from queue
-                int ret = get_from_queue(&data[0], samples, GUI, *params);
+                int ret = get_from_queue(&data[0], c_samples, GUI, *params);
                 if(ret != 1){ // if data is successful draw to screen
                     create_image_from_data(&data[0], *params);
-                    UnloadTexture(texture);
-                    texture = LoadTextureFromImage(image);
+                    UnloadTexture(g_texture);
+                    g_texture = LoadTextureFromImage(g_image);
                 }
             }
         }
 
-        DrawTexture(texture, 350, 0, WHITE);
+        DrawTexture(g_texture, 350, 0, WHITE);
 
         // input fields
         {
             ClearBackground(WHITE);
-            DrawRectangle(0, 0, 250, screen_size, RAYWHITE);
+            DrawRectangle(0, 0, 250, c_screen_size, RAYWHITE);
 
             DrawText("Current Mode: ", 10, 450, 10, DARKGRAY);
             switch (current_mode)
@@ -564,17 +560,17 @@ void *gui_setup(void *args){
             if(trace)
                 printf("reading file\n");
             read_file = 1;
-            refresh = true;
+            g_refresh = true;
             setup_complete = 1;
 		}
 
-        DrawRectangle(250, 0, 100, screen_size, RAYWHITE);
+        DrawRectangle(250, 0, 100, c_screen_size, RAYWHITE);
 
         if(setup_complete == 1){
             for(int i = 0; i < params->number_of_fields; i++){
                 DrawText(params->names[i], 
                          260, 
-                         10 + i * screen_size / params->number_of_fields, 
+                         10 + i * c_screen_size / params->number_of_fields, 
                          10, 
                          DARKGRAY);
             }
@@ -582,9 +578,9 @@ void *gui_setup(void *args){
             if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){
                 if(trace)
                     printf("refreshing data\n");
-                refresh = true;
+                g_refresh = true;
                 clear_texture(*params);
-                number_of_samples = 0;
+                g_number_of_samples = 0;
                 if(current_mode == receiver) // update index only when receiving
                     update_queue_index(GUI, *params);
             }

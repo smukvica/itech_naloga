@@ -18,8 +18,8 @@ extern int start_stop;
 // count pacages received
 int received_packages = 0;
 
-void *read_package(void *arguments){
-    parameters *params = arguments;
+void *read_package(void *a_arguments){
+    parameters *params = a_arguments;
     struct sockaddr_in server;
     int socket_desc;
     char server_reply[get_limit("number_of_fields", 1) * 
