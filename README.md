@@ -76,7 +76,7 @@ To compile the server move to the server folder and type the command:
 To compile the client move to the client folder and type the commands:
 
     mkdir build && cd build
-    cmake ..
+    cmake .. -DCMAKE_BUILD_TYPE=Release
     make
 
 For compiling and using the client the [raylib](https://github.com/raysan5/raylib) and [raygui](https://github.com/raysan5/raygui) library are needed. Raygui is already included since it's a header only library. Raylib has to be installed separately.
@@ -85,7 +85,7 @@ For compiling and using the client the [raylib](https://github.com/raysan5/rayli
 
 To run tests simply go into the **client/tests** folder, and run the following commands:
 
-    cmake -B build
+    cmake -DCMAKE_BUILD_TYPE=Debug -B build
     cmake --build build
     cd build
     ctest
