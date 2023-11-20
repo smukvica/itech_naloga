@@ -14,7 +14,7 @@
 #include "raygui.h"
 
 // size of generated texture, samples taken each timestep
-const int texture_size = 1000;
+const int texture_size = 500;
 const int screen_size = 500;
 const int samples = 500;
 // control if new values are being drawn on screen or not
@@ -49,7 +49,7 @@ void clear_texture(parameters params){
         printf("clearing texture\n");
     for(int i = 0; i < texture_width; i++){
         for(int j = 0; j < texture_height;j++){
-            if(j%(500 / params.number_of_fields) == 0 && j != 0)
+            if(j%(texture_height / params.number_of_fields) == 0 && j != 0)
                 texture_data[j * texture_width + i] = 127;
             else
                 texture_data[j * texture_width + i] = 255;
@@ -75,13 +75,11 @@ void create_texture(parameters params){
     for(int i = 0; i < texture_height * texture_width; i++){
         texture_data[i] = 255;
     }
-    texture = LoadTextureFromImage(image);
 }
 
 void delete_texture(){
     if(trace)
         printf("deleting texture\n");
-    //UnloadTexture(texture);
     free(texture_data);
 }
 
@@ -116,9 +114,6 @@ void create_image_from_data(char *data, parameters params){
         }
         number_of_samples += 1;
     }
-    // update texture
-    UnloadTexture(texture);
-    texture = LoadTextureFromImage(image);
 }
 
 // gets index of specified value from a string for dropdown
@@ -387,7 +382,7 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
 void *gui_setup(void *args){
     SetTraceLogLevel(LOG_ERROR); // no logs from raylib
     
-	InitWindow(350+screen_size, screen_size, "Client");
+	InitWindow(350+texture_size, screen_size, "Client");
 
     parameters *params = (parameters*)args;
 
@@ -408,6 +403,7 @@ void *gui_setup(void *args){
     char corrupt_packages[32];
 
     create_texture(*params);
+    texture = LoadTextureFromImage(image);
 
 	// Main loop
 	while (!WindowShouldClose())
@@ -428,6 +424,8 @@ void *gui_setup(void *args){
                 int ret = get_from_queue(&data[0], samples, GUI, *params);
                 if(ret != 1){ // if data is successful draw to screen
                     create_image_from_data(&data[0], *params);
+                    UnloadTexture(texture);
+                    texture = LoadTextureFromImage(image);
                 }
             }
         }

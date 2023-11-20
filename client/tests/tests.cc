@@ -2,7 +2,7 @@
 #include <raylib.h>
 
 #include "../src/c_file.c"
-//#include "../src/c_gui.c"
+#include "../src/c_gui.c"
 #include "c_includes.h"
 #include "../src/c_includes.c"
 #include "../src/c_output.c"
@@ -238,4 +238,43 @@ TEST(Limits, CheckParameterNonExistent) {
 
 TEST(Limits, GetLimit) {
     EXPECT_EQ(get_limit("file_entries", 0), 500);
+}
+
+TEST(Gui, ClearTexture) {
+
+
+    create_texture(params);
+    clear_texture(params);
+
+    for(int i = 0; i < texture_width; i++){
+        for(int j = 0; j < texture_height; j++){
+            if(j%(500 / params.number_of_fields) == 0 && j != 0)
+                EXPECT_EQ(texture_data[j * texture_width + i], 127);
+            else
+                EXPECT_EQ(texture_data[j * texture_width + i], 255);
+        }
+    }
+
+    delete_texture();
+}
+
+TEST(Gui, UpdateTextureData) {
+    create_texture(params);
+    clear_texture(params);
+
+    char data[(get_limit("number_of_fields", 1) * 
+            get_limit("size_of_field", 1) + 4) * samples]; 
+
+    create_image_from_data(&data[0], params);
+
+    for(int i = 0; i < texture_width; i++){
+        for(int j = 0; j < texture_height; j++){
+            if(j%(texture_height / params.number_of_fields) == 0 && j != 0)
+                EXPECT_EQ(texture_data[j * texture_width + i], 0);
+            else
+                EXPECT_EQ(texture_data[j * texture_width + i], 255);
+        }
+    }
+
+    delete_texture();
 }
