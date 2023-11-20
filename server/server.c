@@ -94,10 +94,11 @@ int main(int argc , char *argv[])
 {
     srand(time(NULL));
     int i = 1;
-    if(strcmp(argv[1], "help") == 0){
-        print_help();
-        return 0;
-    }
+    if(argc > 1)
+        if(strcmp(argv[1], "help") == 0){
+            print_help();
+            return 0;
+        }
     while(i < argc){
         if(strcmp(argv[i], "number_of_fields") == 0){
             num_of_fields = atoi(argv[i+1]);
