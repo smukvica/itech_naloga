@@ -10,6 +10,13 @@
 #include <math.h>
 #include <time.h>
 
+#define STATUS_FIELD_SIZE 4
+
+const unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
+const int packet_num_start_bit = 16;
+const int bmp_num_start_bit = 2;
+
+const float pi_180 = 3.141/180;
 
 int packets_sent = 0;
 int number_of_packets = 100000;
@@ -22,12 +29,13 @@ int size_of_field = 4; // size in bytes
 int send_rate = 10000;
 int skip_rate = 0;
 
-unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 
-void create_byte(int num, char *data){
-    unsigned int out = (unsigned int)(sin(num * 3.141/180.0) * sin(num * 3.141/180.0) * limits_of_data[size_of_field-1]);
+void create_byte(int a_num, char *a_data){
+    unsigned int out = (unsigned int)(sin(a_num * pi_180) * 
+                                      sin(a_num * pi_180) * 
+                                      limits_of_data[size_of_field-1]);
 
-    memcpy(data, &out, sizeof(char) * size_of_field);
+    memcpy(a_data, &out, sizeof(char) * size_of_field);
 }
 
 // creates a data packet
@@ -37,8 +45,8 @@ void create_packet(char *packet){
     unsigned int status = 0;
 
     // sets status bits
-    status |= packets_sent << 16;
-    status |= (char)current_bpm << 2;
+    status |= packets_sent << packet_num_start_bit;
+    status |= current_bpm << bmp_num_start_bit;
 
     current_bpm++;
     current_bpm %= number_of_bpm;
@@ -54,7 +62,7 @@ void create_packet(char *packet){
     memcpy(fields + num_of_fields * size_of_field, &status, sizeof(int));
 
     // copies the final fields to packet to send out
-    memcpy(packet, fields, num_of_fields*size_of_field + 4);
+    memcpy(packet, fields, num_of_fields * size_of_field + STATUS_FIELD_SIZE);
 
     // prints to std out
     unsigned int out = 0;
@@ -76,13 +84,13 @@ void print_help(){
                    "set the number of data fields in packets. limited from 1 to 10",
                    "number_of_fields 5");
     print_argument("size_of_field",
-                   "set the size of each data field in packet. limited to 1, 2, 4",
+                   "set the size of each data field in packet. limited from 1 to 4",
                    "size_of_field 4");
     print_argument("number_of_packets",
                    "set limit of packets sent.",
                    "number_of_packets 1000");
     print_argument("number_of_bpm",
-                   "set the number of bpm cards simulated. limited to 1, 2, 3, 4",
+                   "set the number of bpm cards simulated. limited from 1 to 4",
                    "number_of_bpm 1");
     print_argument("send_rate",
                    "set the speed of transmission of packets",
@@ -166,7 +174,7 @@ int main(int argc , char *argv[])
 		printf("accept failed\n");
 	}
 
-    char message[num_of_fields*size_of_field+4];
+    char message[num_of_fields * size_of_field + STATUS_FIELD_SIZE];
 
     double t = omp_get_wtime();
 
@@ -187,7 +195,9 @@ int main(int argc , char *argv[])
 
             create_packet(message);
             if((rand() % 100) + 1 > skip_rate)
-                write(new_socket, message, num_of_fields*size_of_field+4);
+                write(new_socket, message, num_of_fields * 
+                                           size_of_field + 
+                                           STATUS_FIELD_SIZE);
             packets_sent++;
         }
     }
