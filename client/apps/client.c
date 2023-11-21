@@ -253,14 +253,3 @@ int main(int argc , char *argv[])
 
 	return 0;
 }
-
-/*
-
-compile:
-gcc *.c -lpthread -fopenmp -lraylib -lm -o client
-
-stop:
-Ctrl + C
-
-
-*/

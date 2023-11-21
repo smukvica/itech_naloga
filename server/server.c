@@ -196,13 +196,3 @@ int main(int argc , char *argv[])
 
     return 0;
 }
-
-
-/*
-
-compile:
-gcc *.c -fopenmp -lm -o server
-
-run:
-./server number_of_packets 10000 number_of_fields 5 size_of_field 2 number_of_bpm 1 send_rate 100
-*/
