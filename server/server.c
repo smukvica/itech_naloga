@@ -12,69 +12,69 @@
 
 #define STATUS_FIELD_SIZE 4
 
-const unsigned int limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
-const int packet_num_start_bit = 16;
-const int bmp_num_start_bit = 2;
+const unsigned int c_limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
+const int c_packet_num_start_bit = 16;
+const int c_bmp_num_start_bit = 2;
 
-const float pi_180 = 3.141/180;
+const float c_pi_180 = 3.141/180;
 
-int packets_sent = 0;
-int number_of_packets = 100000;
-int number_of_bpm = 1;
-int current_bpm = 0;
+int g_packets_sent = 0;
+int g_number_of_packets = 100000;
+int g_number_of_bpm = 1;
+int g_current_bpm = 0;
 
-int num_of_fields = 3;
-int size_of_field = 4; // size in bytes
+int g_num_of_fields = 3;
+int g_size_of_field = 4; // size in bytes
 
-int send_rate = 10000;
-int skip_rate = 0;
+int g_send_rate = 10000;
+int g_skip_rate = 0;
 
 
 void create_byte(int a_num, char *a_data){
-    unsigned int out = (unsigned int)(sin(a_num * pi_180) * 
-                                      sin(a_num * pi_180) * 
-                                      limits_of_data[size_of_field-1]);
+    unsigned int out = (unsigned int)(sin(a_num * c_pi_180) * 
+                                      sin(a_num * c_pi_180) * 
+                                      c_limits_of_data[g_size_of_field-1]);
 
-    memcpy(a_data, &out, sizeof(char) * size_of_field);
+    memcpy(a_data, &out, sizeof(char) * g_size_of_field);
 }
 
 // creates a data packet
-void create_packet(char *packet){
-    char fields[num_of_fields * size_of_field];
+void create_packet(char *a_packet){
+    char fields[g_num_of_fields * g_size_of_field];
 
     unsigned int status = 0;
 
     // sets status bits
-    status |= packets_sent << packet_num_start_bit;
-    status |= current_bpm << bmp_num_start_bit;
+    status |= g_packets_sent << c_packet_num_start_bit;
+    status |= g_current_bpm << c_bmp_num_start_bit;
 
-    current_bpm++;
-    current_bpm %= number_of_bpm;
+    g_current_bpm++;
+    g_current_bpm %= g_number_of_bpm;
 
-    char data[size_of_field];
+    char data[g_size_of_field];
 
     // for each field create data and copies to fields
-    for(int i = 0; i < num_of_fields; i++){
-        create_byte(packets_sent, data);
-        memcpy(fields + i * size_of_field, &data, sizeof(char) * size_of_field);
+    for(int i = 0; i < g_num_of_fields; i++){
+        create_byte(g_packets_sent, data);
+        memcpy(fields + i * g_size_of_field, &data, sizeof(char) * g_size_of_field);
     }
     // copies status field at the end
-    memcpy(fields + num_of_fields * size_of_field, &status, sizeof(int));
+    memcpy(fields + g_num_of_fields * g_size_of_field, &status, sizeof(int));
 
     // copies the final fields to packet to send out
-    memcpy(packet, fields, num_of_fields * size_of_field + STATUS_FIELD_SIZE);
+    memcpy(a_packet, fields, g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE);
 
     // prints to std out
     unsigned int out = 0;
-    for(int i = 0; i < num_of_fields * size_of_field; i += size_of_field){
-        memcpy(&out, &fields[i], sizeof(char) * size_of_field);
+    for(int i = 0; i < g_num_of_fields * g_size_of_field; i += g_size_of_field){
+        memcpy(&out, &fields[i], sizeof(char) * g_size_of_field);
         printf("%10u ", out);
     }
     printf("%u\n", status);
 }
 
-void print_argument(const char *arg, const char *explain, const char *usage){
-    printf("%s\n\t%s\n\texample:\t%s\n", arg, explain, usage);
+void print_argument(const char *a_arg, const char *a_explain, const char *a_usage){
+    printf("%s\n\t%s\n\texample:\t%s\n", a_arg, a_explain, a_usage);
 }
 
 void print_help(){
@@ -109,34 +109,34 @@ int main(int argc , char *argv[])
         }
     while(i < argc){
         if(strcmp(argv[i], "number_of_fields") == 0){
-            num_of_fields = atoi(argv[i+1]);
-            if(num_of_fields < 1 || num_of_fields > 10){
+            g_num_of_fields = atoi(argv[i+1]);
+            if(g_num_of_fields < 1 || g_num_of_fields > 10){
                 printf("wrong usage of argument %s. see help\n", argv[i]);
                 return 1;
             }
         }
         if(strcmp(argv[i], "size_of_field") == 0){
-            size_of_field = atoi(argv[i+1]);
-            if(size_of_field < 1 || size_of_field > 4){
+            g_size_of_field = atoi(argv[i+1]);
+            if(g_size_of_field < 1 || g_size_of_field > 4){
                 printf("wrong usage of argument %s. see help\n", argv[i]);
                 return 1;
             }
         }
         if(strcmp(argv[i], "number_of_packets") == 0){
-            number_of_packets = atoi(argv[i+1]);
+            g_number_of_packets = atoi(argv[i+1]);
         }
         if(strcmp(argv[i], "number_of_bpm") == 0){
-            number_of_bpm = atoi(argv[i+1]);
-            if(number_of_bpm < 1 || number_of_bpm > 4){
+            g_number_of_bpm = atoi(argv[i+1]);
+            if(g_number_of_bpm < 1 || g_number_of_bpm > 4){
                 printf("wrong usage of argument %s. see help\n", argv[i]);
                 return 1;
             }
         }
         if(strcmp(argv[i], "send_rate") == 0){
-            send_rate = atoi(argv[i+1]);
+            g_send_rate = atoi(argv[i+1]);
         }
         if(strcmp(argv[i], "skip_rate") == 0){
-            skip_rate = atoi(argv[i+1]);
+            g_skip_rate = atoi(argv[i+1]);
         }
         
         i += 2;
@@ -174,17 +174,17 @@ int main(int argc , char *argv[])
 		printf("accept failed\n");
 	}
 
-    char message[num_of_fields * size_of_field + STATUS_FIELD_SIZE];
+    char message[g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE];
 
     double t = omp_get_wtime();
 
     // keeping frequency of packets per second
-    double time_between_packets = 1.0 / send_rate;
+    double time_between_packets = 1.0 / g_send_rate;
     double current_time_between_packets = 0.0;
     double loop_time = 0.0;
 
     // sends out all packets
-    while(packets_sent < number_of_packets){
+    while(g_packets_sent < g_number_of_packets){
         // checks time after last package sent
         loop_time = omp_get_wtime() - t;
         t += loop_time;
@@ -194,11 +194,11 @@ int main(int argc , char *argv[])
             current_time_between_packets = 0.0;
 
             create_packet(message);
-            if((rand() % 100) + 1 > skip_rate)
-                write(new_socket, message, num_of_fields * 
-                                           size_of_field + 
+            if((rand() % 100) + 1 > g_skip_rate)
+                write(new_socket, message, g_num_of_fields * 
+                                           g_size_of_field + 
                                            STATUS_FIELD_SIZE);
-            packets_sent++;
+            g_packets_sent++;
         }
     }
 
