@@ -19,15 +19,6 @@ pthread_t output;
 pthread_t writer;
 pthread_t gui;
 
-int program_terminate = 0;
-int setup_complete = 0;
-int read_file = 0;
-int start_stop = 0;
-int trace = 0; // output function entries (most of them)
-
-extern unsigned int packet_errors;
-extern int received_packages;
-
 char filename[100];
 
 // prints argument description using a set format
@@ -164,7 +155,7 @@ int read_arguments(int a_argc, char *a_argv[], parameters *a_params){
             strcpy(a_params->save_folder, a_argv[c+1]);
         }
         if(strcmp(a_argv[c], "-trace") == 0){
-            trace = 1;
+            set_trace(1);
             c--;
         }
         c += 2;
@@ -195,6 +186,7 @@ int main(int argc , char *argv[])
                          .ip = {127, 0, 0, 1}};
 
     load_params("config", &params);
+    setup_includes();
     if(argc > 1){
         if(strcmp(argv[1], "read_file") == 0){
             strcpy(filename, argv[2]);
@@ -209,9 +201,9 @@ int main(int argc , char *argv[])
     pthread_create(&gui, NULL, gui_setup, (void*)&params);
 
     // wait for gui to setup parameters
-    while(setup_complete == 0){
+    while(get_setup_complete() == 0){
         sleep(0);
-        if(program_terminate == 1){
+        if(get_program_terminate() == 1){
             pthread_join(gui, NULL);
             return 1;
         }
@@ -226,15 +218,15 @@ int main(int argc , char *argv[])
     
     int created = 0;
 
-    while(program_terminate != 1){
-        if(read_file == 1){
-            read_file = 0;
+    while(get_program_terminate() != 1){
+        if(get_read_file() == 1){
+            set_read_file(0);
             reset_queue();
             reset_package_order();
             file_reader(&filename[0], &params);
             clear_texture(params);
         }
-        if(start_stop == 1 && receive == 0){
+        if(get_start_stop() == 1 && receive == 0){
             if(created == 0){
                 pthread_create(&receiver, NULL, read_package, (void*)&params);
                 created = 1;
@@ -243,7 +235,7 @@ int main(int argc , char *argv[])
             reset_package_order();
             receive = 1;
         }
-        if(start_stop == 0 && receive == 1){
+        if(get_start_stop() == 0 && receive == 1){
             receive = 0;
         }
         sleep(0);
@@ -256,8 +248,9 @@ int main(int argc , char *argv[])
         pthread_join(receiver, NULL);
 
     free_queue();
+    free_includes();
 
-    printf("packet error rate: \t%f\n", (float)packet_errors/received_packages);
+    printf("packet error rate: \t%f\n", (float)get_packet_errors()/get_received_packages());
 
 	return 0;
 }

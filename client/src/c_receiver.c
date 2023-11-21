@@ -12,8 +12,6 @@
 #include "c_includes.h"
 #include "c_queue.h"
 
-extern int program_terminate;
-extern int start_stop;
 
 // count pacages received
 int received_packages = 0;
@@ -50,13 +48,13 @@ void *read_package(void *a_arguments){
     
     // measure time taken
     double t = omp_get_wtime();
-    if(trace)
+    if(get_trace() == 1)
         printf("receiving data\n");
 
     while(1){
-        while(start_stop == 0){
+        while(get_start_stop() == 0){
             sleep(0);
-            if(program_terminate)
+            if(get_program_terminate() == 1)
                 return 0;
         }
         // try to receive a package
@@ -74,7 +72,7 @@ void *read_package(void *a_arguments){
             write_to_queue(server_reply, 1, RECEIVER, *params);
         }
         // signal to close the client or received nothing (server close)
-        if(program_terminate == 1 || ret == 0){
+        if(get_program_terminate() == 1 || ret == 0){
             t = (omp_get_wtime() - t);
             printf("terminate receiver\n");
             sleep(1);
@@ -86,4 +84,8 @@ void *read_package(void *a_arguments){
             return 0;
         }
     }
+}
+
+int get_received_packages() {
+    return received_packages;
 }

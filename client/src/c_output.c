@@ -19,7 +19,6 @@ unsigned int packet_errors = 0;
 int number_of_consecutive_errors = 0;
 int previously_error = 0;
 
-extern int program_terminate;
 
 // checks if 2 consecutive packages are in order
 void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
@@ -57,7 +56,7 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
     }
     // if consecutive errors > 100 terminate
     if(number_of_consecutive_errors > 100){ 
-        program_terminate = 1;
+        set_program_terminate(1);
     }
 }
 
@@ -100,7 +99,7 @@ void *output_package(void *a_args){
             sleep(0);
         }
         // terminate program signal
-        if(program_terminate == 1){
+        if(get_program_terminate() == 1){
             printf("terminate output\n");
             sleep(1);
             printf("bpm errors:\t\t%d\npacket errors:\t\t%d\n", 
@@ -117,23 +116,24 @@ void reset_package_order(){
     check_packet_num = -1;
 }
 
+int get_packet_errors() {
+    return packet_errors;
+}
+
 #ifndef NDEBUG
-void set_check_bpm(int v){
-    check_bpm = v;
+void set_check_bpm(int a_v){
+    check_bpm = a_v;
 }
-void set_check_packet_num(int v){
-    check_packet_num = v;
+void set_check_packet_num(int a_v){
+    check_packet_num = a_v;
 }
-void set_packet_errors(int v){
-    packet_errors = v;
+void set_packet_errors(int a_v){
+    packet_errors = a_v;
 }
 int get_check_bpm(){
     return check_bpm;
 }
 int get_check_packet_num(){
     return check_packet_num;
-}
-int get_packet_errors(){
-    return packet_errors;
 }
 #endif

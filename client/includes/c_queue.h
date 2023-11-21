@@ -17,7 +17,7 @@ void update_queue_index(int a_id, parameters a_params);
 int index_is_smaller(int a_reader, int a_writer, int a_size, parameters a_params);
 
 #ifndef NDEBUG
-void set_writer_index(int a_v)
+void set_writer_index(int a_v);
 int get_writer_index();
 void set_reader_index(int a_id, int a_v);
 int get_reader_index(int a_id);

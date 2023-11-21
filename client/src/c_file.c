@@ -8,7 +8,6 @@
 #include "c_file.h"
 #include "c_queue.h"
 
-extern int program_terminate;
 
 // loads parameters from file
 void load_params(const char *a_file, parameters *a_params){
@@ -107,13 +106,13 @@ void *file_writer(void *a_args){
         // if no data was aquired keep trying
         while(ret){
             ret = get_from_queue(&data[0], params->file_entries, FILEW, *params);
-            if(program_terminate == 1){
+            if(get_program_terminate() == 1){
                 printf("terminate writer\n");
                 return 0;
             }
             sleep(0);
         }
-        if(trace)
+        if(get_trace() == 1)
             printf("writing to file\n");
         if(params->file_write == true){
             // data aquired set filename, open file and write to it
@@ -133,7 +132,7 @@ void *file_writer(void *a_args){
 
 // read from file
 void file_reader(const char *a_file, parameters *a_params){
-    if(trace)
+    if(get_trace() == 1)
         printf("reading from file\n");
     FILE *f;
     f = fopen(a_file, "rb");

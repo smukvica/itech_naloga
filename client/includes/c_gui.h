@@ -3,12 +3,13 @@
 #include "c_includes.h"
 #include "raygui.h"
 
+extern const int c_samples;
+
 extern Image image;
 extern Texture2D texture;
 extern unsigned char *texture_data;
 extern int texture_width;
 extern int texture_height;
-extern const int samples;
 
 int TextToInt(const char* text);
 int GuiIntBox(Rectangle bounds, const char* text, int* value, int minValue, 

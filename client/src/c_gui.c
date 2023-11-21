@@ -9,6 +9,7 @@
 #include "c_gui.h"
 #include "c_queue.h"
 #include "c_file.h"
+#include "c_output.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -19,13 +20,6 @@ const int c_screen_size = 500;
 const int c_samples = 500;
 // control if new values are being drawn on screen or not
 bool g_refresh = true;
-
-extern int program_terminate;
-extern int setup_complete;
-extern char filename[100];
-extern int read_file;
-extern int start_stop;
-extern unsigned int packet_errors;
 
 // g_texture data
 Image g_image;
@@ -43,7 +37,7 @@ enum mode current_mode = passive;
 
 // clears g_texture to default state - white with black lines dividing the fields
 void clear_texture(parameters a_params){
-    if(trace)
+    if(get_trace() == 1)
         printf("clearing g_texture\n");
     for(int i = 0; i < c_texture_size; i++){
         for(int j = 0; j < c_screen_size;j++){
@@ -57,7 +51,7 @@ void clear_texture(parameters a_params){
 }
 
 void create_texture(parameters params){
-    if(trace)
+    if(get_trace() == 1)
         printf("creating g_texture\n");
     g_texture_data = (unsigned char*)malloc(sizeof(unsigned char) * 
                                           c_texture_size * 
@@ -74,13 +68,13 @@ void create_texture(parameters params){
 }
 
 void delete_texture(){
-    if(trace)
+    if(get_trace() == 1)
         printf("deleting g_texture\n");
     free(g_texture_data);
 }
 
-void create_image_from_data(char *data, parameters params){
-    if(trace)
+void create_image_from_data(char *a_data, parameters a_params){
+    if(get_trace() == 1)
         printf("updating g_texture\n");
 
     unsigned int field_height;
@@ -88,18 +82,18 @@ void create_image_from_data(char *data, parameters params){
     // loop through fetched c_samples and draw on g_texture
     for(int k = 0; k < c_samples; k++){
         // index of sample in char array
-        int f = k * (params.size_of_field * params.number_of_fields + 4);
+        int f = k * (a_params.size_of_field * a_params.number_of_fields + 4);
         // temporary variable for output
         unsigned int out = 0;
-        for(int i = 0; i < params.number_of_fields; i++){
+        for(int i = 0; i < a_params.number_of_fields; i++){
             // copy data to out
             memcpy(&out, 
-                   &data[f + i * params.size_of_field], 
-                   sizeof(char) * params.size_of_field);
+                   &a_data[f + i * a_params.size_of_field], 
+                   sizeof(char) * a_params.size_of_field);
             // calculate height of field in screen size
-            field_height = c_screen_size / params.number_of_fields;
+            field_height = c_screen_size / a_params.number_of_fields;
             // calculate position from 0 to 1 based on out and max value
-            field_ratio = out / (float)c_limits_of_data[params.size_of_field - 1];
+            field_ratio = out / (float)c_limits_of_data[a_params.size_of_field - 1];
             // field height - ratio because coordinates go down
             const unsigned int height_offset = field_height - 
                                                field_height * field_ratio;
@@ -375,12 +369,12 @@ int GuiCharBox(Rectangle bounds, const char* text, char* value, bool editMode){
     return result;
 }
 
-void *gui_setup(void *args){
+void *gui_setup(void *a_args){
     SetTraceLogLevel(LOG_ERROR); // no logs from raylib
     
 	InitWindow(350+c_texture_size, c_screen_size, "Client");
 
-    parameters *params = (parameters*)args;
+    parameters *params = (parameters*)a_args;
 
 	// General variables
 	SetTargetFPS(60);
@@ -408,7 +402,7 @@ void *gui_setup(void *args){
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
 
-        if(setup_complete && g_refresh == true)
+        if(get_setup_complete() == 1 && g_refresh == true)
         {
             if(g_number_of_samples == c_screen_size){
                 if(current_mode == file)
@@ -447,7 +441,7 @@ void *gui_setup(void *args){
                 break;
             }
 
-            sprintf(corrupt_packages, "package errors: %d", packet_errors);
+            sprintf(corrupt_packages, "package errors: %d", get_packet_errors());
             DrawText(corrupt_packages, 10, 475, 10, DARKGRAY);
 
             
@@ -536,37 +530,37 @@ void *gui_setup(void *args){
 		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && 
             current_mode == passive)
 		{
-            if(trace)
+            if(get_trace() == 1)
                 printf("starting net capture\n");
-            setup_complete = 1;
+            set_setup_complete(1);
             current_mode = receiver;
             clear_texture(*params);
-            start_stop = 1;
+            set_start_stop(1);
 		}
 
         if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && 
             current_mode == receiver)
         {
-            if(trace)
+            if(get_trace() == 1)
                 printf("stopping net capture\n");
             current_mode = passive;
-            start_stop = 0;
+            set_start_stop(0);
         }
 
         // sets the client to read from file
         if (GuiButton((Rectangle){ 130, 375, 50, 20 }, "Read file") && 
             current_mode == passive)
 		{
-            if(trace)
+            if(get_trace() == 1)
                 printf("reading file\n");
-            read_file = 1;
+            set_read_file(1);
             g_refresh = true;
-            setup_complete = 1;
+            set_setup_complete(1);
 		}
 
         DrawRectangle(250, 0, 100, c_screen_size, RAYWHITE);
 
-        if(setup_complete == 1){
+        if(get_setup_complete() == 1){
             for(int i = 0; i < params->number_of_fields; i++){
                 DrawText(params->names[i], 
                          260, 
@@ -576,7 +570,7 @@ void *gui_setup(void *args){
             }
             
             if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){
-                if(trace)
+                if(get_trace() == 1)
                     printf("refreshing data\n");
                 g_refresh = true;
                 clear_texture(*params);
@@ -599,6 +593,6 @@ void *gui_setup(void *args){
     
 	CloseWindow();
     delete_texture();
-    program_terminate = 1;
+    set_program_terminate(1);
     sleep(1);
 }
