@@ -93,7 +93,7 @@ int get_start_stop() {
 }
 int get_trace() {
     sem_wait(&semaphore_g);
-    int r = g_start_stop;
+    int r = g_trace;
     sem_post(&semaphore_g);
     return r;
 }

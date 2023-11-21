@@ -39,7 +39,7 @@ enum mode current_mode = passive;
 // clears g_texture to default state - white with black lines dividing the fields
 void clear_texture(parameters a_params){
     if(get_trace() == 1)
-        printf("clearing g_texture\n");
+        printf("clearing texture\n");
     for(int i = 0; i < c_texture_size; i++){
         for(int j = 0; j < c_screen_size;j++){
             if(j%(c_screen_size / a_params.number_of_fields) == 0 && j != 0)
@@ -53,7 +53,7 @@ void clear_texture(parameters a_params){
 
 void create_texture(parameters params){
     if(get_trace() == 1)
-        printf("creating g_texture\n");
+        printf("creating texture\n");
     g_texture_data = malloc(sizeof(unsigned char) * 
                             c_texture_size * 
                             c_screen_size);
@@ -62,7 +62,6 @@ void create_texture(parameters params){
                     .height = c_screen_size, 
                     .mipmaps = 1, 
                     .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE};
-    //clear_texture(params);
     for(int i = 0; i < c_texture_size * c_screen_size; i++){
         g_texture_data[i] = 255;
     }
@@ -70,13 +69,13 @@ void create_texture(parameters params){
 
 void delete_texture(){
     if(get_trace() == 1)
-        printf("deleting g_texture\n");
+        printf("deleting texture\n");
     free(g_texture_data);
 }
 
 void create_image_from_data(char *a_data, parameters a_params){
     if(get_trace() == 1)
-        printf("updating g_texture\n");
+        printf("updating texture\n");
 
     unsigned int field_height;
     float field_ratio;
