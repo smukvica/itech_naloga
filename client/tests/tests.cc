@@ -1,19 +1,14 @@
 #include <gtest/gtest.h>
 #include <raylib.h>
 
-#include "../src/c_file.c"
-#include "../src/c_gui.c"
+extern "C" {
 #include "c_includes.h"
-#include "../src/c_includes.c"
-#include "../src/c_output.c"
-#include "../src/c_queue.c"
-
-int trace = 0;
-int program_terminate = 0;
-int setup_complete = 0;
-char filename[100];
-int read_file = 0;
-int start_stop= 0;
+#include "c_receiver.h"
+#include "c_output.h"
+#include "c_file.h"
+#include "c_gui.h"
+#include "c_queue.h"
+}
 
 parameters params = {.queue_size = 200000,
                      .number_of_packets = 1000,
@@ -241,40 +236,43 @@ TEST(Limits, GetLimit) {
 }
 
 TEST(Gui, ClearTexture) {
-
+    setup_includes();
 
     create_texture(params);
     clear_texture(params);
 
-    for(int i = 0; i < texture_width; i++){
-        for(int j = 0; j < texture_height; j++){
-            if(j%(500 / params.number_of_fields) == 0 && j != 0)
-                EXPECT_EQ(texture_data[j * texture_width + i], 127);
+    for(int i = 0; i < c_texture_size; i++){
+        for(int j = 0; j < c_screen_size; j++){
+            if(j%(c_screen_size / params.number_of_fields) == 0 && j != 0)
+                EXPECT_EQ(g_texture_data[j * c_texture_size + i], 127);
             else
-                EXPECT_EQ(texture_data[j * texture_width + i], 255);
+                EXPECT_EQ(g_texture_data[j * c_texture_size + i], 255);
         }
     }
 
     delete_texture();
+    free_includes();
 }
 
 TEST(Gui, UpdateTextureData) {
+    setup_includes();
     create_texture(params);
     clear_texture(params);
 
     char data[(get_limit("number_of_fields", 1) * 
-            get_limit("size_of_field", 1) + 4) * samples]; 
+            get_limit("size_of_field", 1) + 4) * c_samples]; 
 
     create_image_from_data(&data[0], params);
 
-    for(int i = 0; i < texture_width; i++){
-        for(int j = 0; j < texture_height; j++){
-            if(j%(texture_height / params.number_of_fields) == 0 && j != 0)
-                EXPECT_EQ(texture_data[j * texture_width + i], 0);
+    for(int i = 0; i < c_texture_size; i++){
+        for(int j = 0; j < c_screen_size; j++){
+            if(j%(c_screen_size / params.number_of_fields) == 0 && j != 0)
+                EXPECT_EQ(g_texture_data[j * c_texture_size + i], 0);
             else
-                EXPECT_EQ(texture_data[j * texture_width + i], 255);
+                EXPECT_EQ(g_texture_data[j * c_texture_size + i], 255);
         }
     }
 
     delete_texture();
+    free_includes();
 }

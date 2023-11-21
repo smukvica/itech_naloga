@@ -18,7 +18,7 @@ typedef struct parameters{
     char save_folder[256];
 }parameters;
 
-extern char filename[100];
+extern char g_filename[100];
 
 // returns 0 if parameter is within limits
 // returns 1 if parameter is out of limits

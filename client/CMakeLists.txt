@@ -2,19 +2,28 @@ cmake_minimum_required(VERSION 3.16.3)
 
 project(itech_naloga)
 
-add_executable (
-    client
-    src/c_file.c
-    src/c_gui.c
-    src/c_includes.c
-    src/client.c
-    src/c_output.c
-    src/c_queue.c
-    src/c_receiver.c
-)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
-target_include_directories(client PRIVATE
-    includes
-)
+  # Optionally set things like CMAKE_CXX_STANDARD, CMAKE_POSITION_INDEPENDENT_CODE here
 
-target_link_libraries(client -lraylib -lpthread -lm -fopenmp)
+  # Let's ensure -std=c++xx instead of -std=g++xx
+  set(CMAKE_CXX_EXTENSIONS OFF)
+
+  # Let's nicely support folders in IDEs
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+  # Testing only available if this is the main app
+  # Note this needs to be done in the main CMakeLists
+  # since it calls enable_testing, which must be in the
+  # main CMakeLists.
+  include(CTest)
+endif()
+
+
+
+add_subdirectory(src)
+
+add_subdirectory(apps)
+
+add_subdirectory(tests)
+

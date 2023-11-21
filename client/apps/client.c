@@ -19,8 +19,6 @@ pthread_t output;
 pthread_t writer;
 pthread_t gui;
 
-char filename[100];
-
 // prints argument description using a set format
 void print_argument(const char *a_arg, const char *a_explain, const char *a_usage, 
                     int a_limit_l, int a_limit_u){
@@ -189,7 +187,7 @@ int main(int argc , char *argv[])
     setup_includes();
     if(argc > 1){
         if(strcmp(argv[1], "read_file") == 0){
-            strcpy(filename, argv[2]);
+            strcpy(g_filename, argv[2]);
         } else if (strcmp(argv[1], "help") == 0){  // argument to print help
             print_help();
             return 0;
@@ -223,7 +221,7 @@ int main(int argc , char *argv[])
             set_read_file(0);
             reset_queue();
             reset_package_order();
-            file_reader(&filename[0], &params);
+            file_reader(&g_filename[0], &params);
             clear_texture(params);
         }
         if(get_start_stop() == 1 && receive == 0){

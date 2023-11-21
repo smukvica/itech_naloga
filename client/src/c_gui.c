@@ -516,7 +516,7 @@ void *gui_setup(void *a_args){
 
             if (GuiCharBox((Rectangle){ 130, 350, 120, 20 }, 
                 NULL, 
-                &filename[0], 
+                &g_filename[0], 
                 variables[9] && can_change)) 
                 variables[9] = !variables[9];
             if (GuiCharBox((Rectangle){ 130, 310, 120, 20 }, 
