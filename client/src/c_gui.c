@@ -82,7 +82,10 @@ void create_image_from_data(char *a_data, parameters a_params){
     // loop through fetched c_samples and draw on g_texture
     for(int k = 0; k < c_samples; k++){
         // index of sample in char array
-        int f = k * (a_params.size_of_field * a_params.number_of_fields + 4);
+        int size_of_data = (a_params.size_of_field * 
+                            a_params.number_of_fields + 
+                            STATUS_FIELD_SIZE);
+        int f = k * size_of_data;
         // temporary variable for output
         unsigned int out = 0;
         for(int i = 0; i < a_params.number_of_fields; i++){
@@ -381,7 +384,7 @@ void *gui_setup(void *a_args){
     
     // variables to select gui elements
 	bool variables[11] = {false};
-    bool name_variables[10] = {false};
+    bool name_variables[MAX_NAMES] = {false};
     bool ip_vars[4] = {false};
 
     bool can_change = true;
@@ -389,7 +392,7 @@ void *gui_setup(void *a_args){
 
     // data field to store c_samples
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + 4) * c_samples];
+               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * c_samples];
     char corrupt_packages[32];
 
     create_texture(*params);

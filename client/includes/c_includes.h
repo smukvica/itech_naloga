@@ -1,6 +1,13 @@
 #pragma once
 #include <stdbool.h>
 
+#define MAX_NAMES 10
+#define MAX_NAME_LENGTH 32
+#define SAVE_FOLDER_NAME_LENGTH 256
+#define SAVE_FILE_NAME_LENGTH 100
+
+#define STATUS_FIELD_SIZE 4
+
 #define member_size(type, member) sizeof(((type *)0)->member)
 
 typedef struct parameters{
@@ -10,15 +17,15 @@ typedef struct parameters{
     int file_entries;
     int number_of_fields;
     int size_of_field;
-    char names[10][32];
+    char names[MAX_NAMES][MAX_NAME_LENGTH];
     bool file_write;
     bool std_output;
     int port;
     int ip[4];
-    char save_folder[256];
+    char save_folder[SAVE_FOLDER_NAME_LENGTH];
 }parameters;
 
-extern char g_filename[100];
+extern char g_filename[SAVE_FILE_NAME_LENGTH];
 
 // returns 0 if parameter is within limits
 // returns 1 if parameter is out of limits

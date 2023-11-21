@@ -21,7 +21,7 @@ void *read_package(void *a_arguments){
     struct sockaddr_in server;
     int socket_desc;
     char server_reply[get_limit("number_of_fields", 1) * 
-                      get_limit("size_of_field", 1) + 4];
+                      get_limit("size_of_field", 1) + STATUS_FIELD_SIZE];
 	
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_desc == -1)
@@ -60,7 +60,9 @@ void *read_package(void *a_arguments){
         // try to receive a package
         int ret = recv(socket_desc, 
                        &server_reply, 
-                       params->number_of_fields * params->size_of_field + 4,
+                       params->number_of_fields * 
+                            params->size_of_field + 
+                            STATUS_FIELD_SIZE,
                        0);
         if( ret < 0){
             puts("recv failed");

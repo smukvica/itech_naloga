@@ -2,12 +2,12 @@
 #include <raylib.h>
 
 extern "C" {
-#include "c_includes.h"
-#include "c_receiver.h"
-#include "c_output.h"
-#include "c_file.h"
-#include "c_gui.h"
-#include "c_queue.h"
+    #include "c_includes.h"
+    #include "c_receiver.h"
+    #include "c_output.h"
+    #include "c_file.h"
+    #include "c_gui.h"
+    #include "c_queue.h"
 }
 
 parameters params = {.queue_size = 200000,
@@ -53,7 +53,7 @@ TEST(Queue, IndexUpdate) {
     setup_queue(params);
     update_queue_index(0, params);
     free_queue();
-    EXPECT_EQ(get_writer_index() - 500, get_reader_index(0));
+    EXPECT_EQ(get_writer_index() - c_samples, get_reader_index(0));
 }
 
 TEST(Queue, IndexUpdateOverflow) {
@@ -62,7 +62,8 @@ TEST(Queue, IndexUpdateOverflow) {
     setup_queue(params);
     update_queue_index(0, params);
     free_queue();
-    EXPECT_EQ(params.queue_size - (500 - get_writer_index()), get_reader_index(0));
+    EXPECT_EQ(params.queue_size - (c_samples - get_writer_index()), 
+              get_reader_index(0));
 }
 
 TEST(Queue, WriteToQueue) {
@@ -107,15 +108,21 @@ TEST(Queue, WriteFromQueueOutputOverflow) {
     set_writer_index(100);
     set_reader_index(OUTPUT, 199950);
 
+    int size_of_data = (params.size_of_field * 
+                        params.number_of_fields + 
+                        STATUS_FIELD_SIZE);
+
     setup_queue(params);
-    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+    for(int i = 0; i < params.queue_size * size_of_data; i++){
         set_queue(i, i % 256);
     }
     for(int i = 0; i < 100;i++){
         get_from_queue(&data[0], 1, OUTPUT, params);
         
-        for(int j = 0; j < (params.size_of_field * params.number_of_fields + 4); j++){
-            EXPECT_EQ(get_queue(((199950 + i) % params.queue_size) * (params.size_of_field * params.number_of_fields + 4) + j), data[j]);
+        for(int j = 0; j < size_of_data; j++){
+            EXPECT_EQ(get_queue(((199950 + i) % params.queue_size) * 
+                        size_of_data + j), 
+                      data[j]);
         }
     }
     free_queue();
@@ -125,14 +132,18 @@ TEST(Queue, WriteFromQueueGui) {
     set_writer_index(501);
     char data[(params.size_of_field * params.number_of_fields + 4) * 500];
 
+    int size_of_data = (params.size_of_field * 
+                        params.number_of_fields + 
+                        STATUS_FIELD_SIZE);
+
     setup_queue(params);
-    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+    for(int i = 0; i < params.queue_size * size_of_data; i++){
         set_queue(i, (char)i % 256);
     }
-    get_from_queue(&data[0], 500, GUI, params);
+    get_from_queue(&data[0], c_samples, GUI, params);
 
     EXPECT_EQ(get_reader_index(GUI), 500);
-    for(int i = 0; i < (params.size_of_field * params.number_of_fields + 4) * 500; i++){
+    for(int i = 0; i < size_of_data * c_samples; i++){
         EXPECT_EQ(get_queue(i), data[i]);
     }
     free_queue();
@@ -141,19 +152,21 @@ TEST(Queue, WriteFromQueueGui) {
 TEST(Queue, WriteFromQueueGuiOverflow) {
     set_writer_index(300);
     set_reader_index(GUI, 199750);
-    char data[(params.size_of_field * params.number_of_fields + 4) * 500] = { 0 };
+    int size_of_data = (params.size_of_field * 
+                        params.number_of_fields + 
+                        STATUS_FIELD_SIZE);
+    char data[size_of_data * c_samples];
 
     setup_queue(params);
-    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+    for(int i = 0; i < params.queue_size * size_of_data; i++){
         set_queue(i, i % 256);
     }
-    get_from_queue(&data[0], 500, GUI, params);
-    
-    int size_of_data = (params.number_of_fields * params.size_of_field + 4);
+    get_from_queue(&data[0], c_samples, GUI, params);
 
     EXPECT_EQ(get_reader_index(GUI), 250);
-    for(int i = 0; i < 500; i++){
-        EXPECT_EQ(get_queue(((199750 + i) % params.queue_size) * size_of_data), data[i * size_of_data]);
+    for(int i = 0; i < c_samples; i++){
+        EXPECT_EQ(get_queue(((199750 + i) % params.queue_size) * size_of_data), 
+                  data[i * size_of_data]);
     }
     free_queue();
 }
@@ -161,19 +174,23 @@ TEST(Queue, WriteFromQueueGuiOverflow) {
 TEST(Queue, WriteFromQueueGuiMaxLimit) {
     set_writer_index(300);
     set_reader_index(GUI, 199500);
-    char data[(params.size_of_field * params.number_of_fields + 4) * 500] = { 0 };
+    int size_of_data = (params.size_of_field * 
+                        params.number_of_fields + 
+                        STATUS_FIELD_SIZE);
+    char data[size_of_data * c_samples] = { 0 };
 
     setup_queue(params);
-    for(int i = 0; i < params.queue_size * (params.size_of_field * params.number_of_fields + 4); i++){
+    for(int i = 0; i < params.queue_size * size_of_data; i++){
         set_queue(i, i % 256);
     }
-    get_from_queue(&data[0], 500, GUI, params);
+    get_from_queue(&data[0], c_samples, GUI, params);
     
-    int size_of_data = (params.number_of_fields * params.size_of_field + 4);
+    
 
     EXPECT_EQ(get_reader_index(GUI), 0);
     for(int i = 0; i < 500; i++){
-        EXPECT_EQ(get_queue(((199500 + i) % params.queue_size) * size_of_data), data[i * size_of_data]);
+        EXPECT_EQ(get_queue(((199500 + i) % params.queue_size) * size_of_data), 
+                  data[i * size_of_data]);
     }
     free_queue();
 }
@@ -260,7 +277,7 @@ TEST(Gui, UpdateTextureData) {
     clear_texture(params);
 
     char data[(get_limit("number_of_fields", 1) * 
-            get_limit("size_of_field", 1) + 4) * c_samples]; 
+               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * c_samples]; 
 
     create_image_from_data(&data[0], params);
 

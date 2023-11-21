@@ -7,6 +7,9 @@
 #include "c_output.h"
 #include "c_queue.h"
 
+const int max_consecutive_errors = 100;
+const int max_16_bit_value = 65535;
+
 // save previous values of bpm and packet number initial is -1 (not set before)
 int check_bpm = -1;
 int check_packet_num = -1;
@@ -39,7 +42,8 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
     else{
         // expected value is different from actual or 
         // number is larger than max available bits
-        if(check_packet_num + 1 != a_package_id && check_packet_num != 65535){ 
+        if(check_packet_num + 1 != a_package_id &&
+           check_packet_num != max_16_bit_value){ 
             printf("zaporedje paketov napačno\n");
             if(previously_error == 0){  // first wrong package
                 previously_error = 1;
@@ -55,7 +59,7 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
         check_packet_num = a_package_id;
     }
     // if consecutive errors > 100 terminate
-    if(number_of_consecutive_errors > 100){ 
+    if(number_of_consecutive_errors > max_consecutive_errors){ 
         set_program_terminate(1);
     }
 }

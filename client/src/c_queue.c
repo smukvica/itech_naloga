@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "c_queue.h"
+#include "c_gui.h"
 
 char *queue;
 int writer_index = 0;
@@ -29,7 +30,9 @@ int index_is_smaller(int a_reader, int a_writer, int a_size, parameters a_params
 // writes a_data to queue
 // only a_writer thread and receiver thread write (not at same time)
 void write_to_queue(char *a_data, int a_size, int a_id, parameters a_params){
-    int size_of_data = (a_params.number_of_fields * a_params.size_of_field + 4);
+    int size_of_data = (a_params.number_of_fields * 
+                        a_params.size_of_field + 
+                        STATUS_FIELD_SIZE);
     // copy a_data to queue
     memcpy(queue + writer_index * size_of_data,
            a_data, 
@@ -59,7 +62,9 @@ int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
 
     // we can get a_data
     if(can_write){
-        int size_of_data = (a_params.number_of_fields * a_params.size_of_field + 4);
+        int size_of_data = (a_params.number_of_fields * 
+                            a_params.size_of_field + 
+                            STATUS_FIELD_SIZE);
         int i1, s1, i2, s2;
         // index of first chunk is current a_reader index
         i1 = r;
@@ -92,7 +97,7 @@ int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
 void setup_queue(parameters a_params){
     queue = (char*)malloc((sizeof(char) * 
                     a_params.number_of_fields * 
-                    a_params.size_of_field + 4) * 
+                    a_params.size_of_field + STATUS_FIELD_SIZE) * 
                     a_params.queue_size);
 
     sem_init(&semaphore_q, 0, 1);
@@ -116,7 +121,7 @@ void reset_queue(){
 // updates the queue index to most recent entry - only GUI usage
 void update_queue_index(int a_id, parameters a_params){
     sem_wait(&semaphore_q);
-    reader_index[a_id] = writer_index - 500;
+    reader_index[a_id] = writer_index - c_samples;
     if(reader_index[a_id] < 0)
         reader_index[a_id] += a_params.queue_size;
     sem_post(&semaphore_q);

@@ -1,8 +1,5 @@
 client/client
-server/server
+server/build
 .vscode/
-client/*.bin
 client/config
-client/*/*.bin
-client/tests/build
 client/build

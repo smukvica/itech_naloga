@@ -17,7 +17,7 @@ void load_params(const char *a_file, parameters *a_params){
     ssize_t read;
     size_t len = 0;
     char tf_values[2][6];
-    char names[33*10] = {0};
+    char names[MAX_NAMES*MAX_NAME_LENGTH] = {0};
     // if file doesn't exist don't read
     if(f != NULL){
         while ((read = getline(&line, &len, f)) != -1) {
@@ -41,7 +41,7 @@ void load_params(const char *a_file, parameters *a_params){
         temp = strtok(names, "\n");
         temp = strtok(names, " ");
         while(temp != NULL){
-            if(strlen(temp) >= 32)
+            if(strlen(temp) >= MAX_NAME_LENGTH)
                 temp[31] = '\0';
             strcpy(a_params->names[i], temp);
             temp = strtok(NULL, " ");
@@ -95,9 +95,11 @@ void *file_writer(void *a_args){
     char filename[512];  // save file
     int file_num = 0;   // current file number
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + 4) * 
+               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * 
                get_limit("file_entries", 1)];
     
+    int size_of_data = (params->number_of_fields * 
+                        params->size_of_field + STATUS_FIELD_SIZE);
     mkdir(params->save_folder, 0777);
     while(1){
         // gets data from queue
@@ -119,10 +121,7 @@ void *file_writer(void *a_args){
             sprintf(filename, "%sfile_%05d.bin", params->save_folder, file_num);
             f = fopen(filename,"wb");
             fwrite(&temp, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
-            fwrite(data, 
-                (sizeof(char) * params->number_of_fields * params->size_of_field + 4), 
-                params->file_entries, 
-                f);
+            fwrite(data, size_of_data, params->file_entries, f);
             fclose(f);
 
             file_num++;
@@ -141,14 +140,15 @@ void file_reader(const char *a_file, parameters *a_params){
         return;
     }
 
+    int size_of_data = (a_params->number_of_fields * 
+                        a_params->size_of_field + STATUS_FIELD_SIZE);
+
     fread(a_params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
     setup_queue(*a_params);
 
-    char buffer[(a_params->number_of_fields * a_params->size_of_field + 4) * 
-                 a_params->file_entries];
+    char buffer[ size_of_data * a_params->file_entries];
 
-    fread(buffer, (sizeof(char) * a_params->number_of_fields * 
-                   a_params->size_of_field + 4), a_params->file_entries, f);
+    fread(buffer, size_of_data, a_params->file_entries, f);
 
     // write data to queue
     write_to_queue(buffer, a_params->file_entries, FILEW, *a_params);

@@ -34,7 +34,7 @@ The client has a similar set of parameters as the server with an addition of a c
 
 Final *n* arguments are meant to be the names for the data fields. The names should be given as one name one argument.
 
-All arguments can be omitted and the default values will be used. Alternatively a config file can be setup. The file is constructed by writing argument names in lines and save as *config*.
+All arguments can be omitted and the default values will be used. Alternatively a config file can be setup. The file is constructed by writing argument names in lines and save as *config*. The file location needs to be in the working directory when running client executable.
 
 Example of config file:
 
@@ -69,7 +69,10 @@ The client will output at the end the time running, packages aquired, packages p
 
 To compile the server move to the server folder and type the command:
 
-    gcc server.c -fopenmp -lm -o server
+    cmake . -B build/
+    cmake --build build
+
+The built executable is in directory *build*.
 
 ### Client
 
@@ -87,6 +90,7 @@ For compiling and using the client the [raylib](https://github.com/raysan5/rayli
 To run tests simply go into the **client/tests** folder, and run the following commands:
 
     cmake . -B build
+    cmake --build build 
     cmake --build build --target test
 
 The tests will run and the results will be displayed in the console.
