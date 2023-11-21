@@ -18,6 +18,7 @@
 const int c_texture_size = 500;
 const int c_screen_size = 500;
 const int c_samples = 500;
+
 // control if new values are being drawn on screen or not
 bool g_refresh = true;
 
@@ -466,7 +467,7 @@ void *gui_setup(void *a_args){
                         NULL, 
                         &params->port, 
                         1025, 
-                        1000000, 
+                        10000, 
                         variables[6] & can_change)) variables[6] = !variables[6];
             for(int i = 0; i < 4; i++){
                 if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, 

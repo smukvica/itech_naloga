@@ -47,5 +47,3 @@ void set_trace(int a_v);
 
 void setup_includes();
 void free_includes();
-
-extern int trace;
