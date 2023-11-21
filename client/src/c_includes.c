@@ -74,7 +74,9 @@ int get_program_terminate() {
     return r;
 }
 int get_setup_complete() {
+    sem_wait(&semaphore_g);
     int r = g_setup_complete;
+    sem_post(&semaphore_g);
     return r;
 }
 int get_read_file() {
@@ -84,11 +86,15 @@ int get_read_file() {
     return r;
 }
 int get_start_stop() {
+    sem_wait(&semaphore_g);
     int r = g_start_stop;
+    sem_post(&semaphore_g);
     return r;
 }
 int get_trace() {
+    sem_wait(&semaphore_g);
     int r = g_start_stop;
+    sem_post(&semaphore_g);
     return r;
 }
 
@@ -98,7 +104,9 @@ void set_program_terminate(int a_v) {
     sem_post(&semaphore_g);
 }
 void set_setup_complete(int a_v) {
+    sem_wait(&semaphore_g);
     g_setup_complete = a_v;
+    sem_post(&semaphore_g);
 }
 void set_read_file(int a_v) {
     sem_wait(&semaphore_g);
@@ -106,10 +114,14 @@ void set_read_file(int a_v) {
     sem_post(&semaphore_g);
 }
 void set_start_stop(int a_v) {
+    sem_wait(&semaphore_g);
     g_start_stop = a_v;
+    sem_post(&semaphore_g);
 }
 void set_trace(int a_v) {
+    sem_wait(&semaphore_g);
     g_trace = a_v;
+    sem_post(&semaphore_g);
 }
 
 void setup_includes(){
