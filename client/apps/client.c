@@ -248,7 +248,8 @@ int main(int argc , char *argv[])
     free_queue();
     free_includes();
 
-    printf("packet error rate: \t%f\n", (float)get_packet_errors()/get_received_packages());
+    printf("packet error rate: \t%f\n", 
+            (float)get_packet_errors()/get_received_packages());
 
 	return 0;
 }
