@@ -95,7 +95,7 @@ int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
 }
 
 void setup_queue(parameters a_params){
-    queue = (char*)malloc((sizeof(char) * 
+    queue = malloc((sizeof(char) * 
                     a_params.number_of_fields * 
                     a_params.size_of_field + STATUS_FIELD_SIZE) * 
                     a_params.queue_size);

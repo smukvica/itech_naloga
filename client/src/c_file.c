@@ -87,7 +87,7 @@ void load_params(const char *a_file, parameters *a_params){
 // writer thread function
 void *file_writer(void *a_args){
     FILE *f;
-    parameters *params = (parameters *)a_args;
+    parameters *params = a_args;
     // write parameters without file_write
     parameters temp;
     memcpy(&temp, params, sizeof(parameters));

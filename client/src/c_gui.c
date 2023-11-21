@@ -54,9 +54,9 @@ void clear_texture(parameters a_params){
 void create_texture(parameters params){
     if(get_trace() == 1)
         printf("creating g_texture\n");
-    g_texture_data = (unsigned char*)malloc(sizeof(unsigned char) * 
-                                          c_texture_size * 
-                                          c_screen_size);
+    g_texture_data = malloc(sizeof(unsigned char) * 
+                            c_texture_size * 
+                            c_screen_size);
     g_image = (Image){.data = g_texture_data, 
                     .width = c_texture_size, 
                     .height = c_screen_size, 
@@ -378,7 +378,7 @@ void *gui_setup(void *a_args){
     
 	InitWindow(350+c_texture_size, c_screen_size, "Client");
 
-    parameters *params = (parameters*)a_args;
+    parameters *params = a_args;
 
 	// General variables
 	SetTargetFPS(60);
