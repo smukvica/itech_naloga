@@ -5,4 +5,4 @@ target_include_directories(client PRIVATE
     ../includes
 )
 
-target_link_libraries(client PRIVATE client_library)
+target_link_libraries(client PRIVATE client_library raylib)

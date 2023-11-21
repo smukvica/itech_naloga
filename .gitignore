@@ -1,5 +1,5 @@
-client/client
-server/build
 .vscode/
+server/build
 client/config
 client/build
+client/raylib

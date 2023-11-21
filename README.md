@@ -83,7 +83,7 @@ To compile the client move to the client folder and type the commands:
 
 The built executable is in directory *build/apps*.
 
-For compiling and using the client the [raylib](https://github.com/raysan5/raylib) and [raygui](https://github.com/raysan5/raygui) library are needed. Raygui is already included since it's a header only library. Raylib has to be installed separately.
+For compiling and using the client the [raylib](https://github.com/raysan5/raylib) and [raygui](https://github.com/raysan5/raygui) library are needed. Raygui is already included since it's a header only library. Raylib gets downloaded into the directory when using cmake. Optionally it can be installed separately.
 
 ## Testing
 

@@ -24,7 +24,7 @@ add_library(client_library c_file.c
 target_include_directories(client_library PRIVATE ../includes)
 
 # This depends on (header only) boost
-target_link_libraries(client_library PRIVATE -lraylib -lpthread -lm -fopenmp)
+target_link_libraries(client_library PRIVATE raylib -lpthread -lm -fopenmp)
 
 # All users of this library will need at least C++11
 target_compile_features(client_library PUBLIC cxx_std_11)

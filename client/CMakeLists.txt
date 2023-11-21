@@ -19,6 +19,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
 
+include(FetchContent)
+FetchContent_Declare(
+  raylib
+  GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
+  GIT_TAG "5.0"   # it's much better to use a specific Git revision or Git tag for reproducibility
+  SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/raylib"
+)
+FetchContent_MakeAvailable(raylib)
 
 
 add_subdirectory(src)
