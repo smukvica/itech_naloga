@@ -98,8 +98,9 @@ void create_image_from_data(const char *a_data, parameters a_params){
             // calculate position from 0 to 1 based on out and max value
             field_ratio = out / (float)c_limits_of_data[a_params.size_of_field - 1];
             // field height - ratio because coordinates go down
-            const unsigned int height_offset = (field_height - 1) - 
-                                               (field_height - 1) * field_ratio;
+            // -2 + 1 to ensure it's within 1 - 99 limit instead of 0 - 100
+            const unsigned int height_offset = (field_height - 2) - 
+                                               (field_height - 2) * field_ratio + 1;
             // set g_texture data value to black where sample is located
             const int index = c_texture_size * 
                               (height_offset + i * field_height) + 
@@ -551,6 +552,8 @@ void *gui_setup(void *a_args){
             current_mode = receiver;
             clear_texture(*params);
             set_start_stop(1);
+            reset_queue();
+            g_refresh = true;
 		}
 
         if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && 
