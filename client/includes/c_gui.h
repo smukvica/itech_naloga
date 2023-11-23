@@ -21,4 +21,4 @@ void *gui_setup(void *args);
 void clear_texture(parameters params);
 void create_texture(parameters params);
 void delete_texture();
-void create_image_from_data(char *a_data, parameters a_params);
+void create_image_from_data(const char *a_data, parameters a_params);

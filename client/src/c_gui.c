@@ -73,18 +73,18 @@ void delete_texture(){
     free(g_texture_data);
 }
 
-void create_image_from_data(char *a_data, parameters a_params){
+void create_image_from_data(const char *a_data, parameters a_params){
     if(get_trace() == 1)
         printf("updating texture\n");
 
     unsigned int field_height;
     float field_ratio;
+    // index of sample in char array
+    int size_of_data = (a_params.size_of_field * 
+                        a_params.number_of_fields + 
+                        STATUS_FIELD_SIZE);
     // loop through fetched c_samples and draw on g_texture
     for(int k = 0; k < c_samples; k++){
-        // index of sample in char array
-        int size_of_data = (a_params.size_of_field * 
-                            a_params.number_of_fields + 
-                            STATUS_FIELD_SIZE);
         int f = k * size_of_data;
         // temporary variable for output
         unsigned int out = 0;
@@ -98,12 +98,20 @@ void create_image_from_data(char *a_data, parameters a_params){
             // calculate position from 0 to 1 based on out and max value
             field_ratio = out / (float)c_limits_of_data[a_params.size_of_field - 1];
             // field height - ratio because coordinates go down
-            const unsigned int height_offset = field_height - 
-                                               field_height * field_ratio;
+            const unsigned int height_offset = (field_height - 1) - 
+                                               (field_height - 1) * field_ratio;
             // set g_texture data value to black where sample is located
-            g_texture_data[c_texture_size * 
-                           (height_offset + i * field_height) + 
-                           g_number_of_samples] = 0;
+            const int index = c_texture_size * 
+                              (height_offset + i * field_height) + 
+                              g_number_of_samples;
+            
+            // rare segfault catching mechanics
+            if(index >= c_screen_size * c_texture_size){
+                printf("Error: index out of range in array\n");
+                set_program_terminate(1);
+                return;
+            }
+            g_texture_data[index] = 0;
         }
         g_number_of_samples += 1;
     }
@@ -387,6 +395,7 @@ void *gui_setup(void *a_args){
     bool name_variables[MAX_NAMES] = {false};
     bool ip_vars[4] = {false};
 
+    // track switching operation mode
     bool can_change = true;
 	//--------------------------------------------------------------------------------------
 
@@ -404,6 +413,9 @@ void *gui_setup(void *a_args){
 		// Draw 
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
+
+        if(get_program_terminate() == 1)
+            break;
 
         if(get_setup_complete() == 1 && g_refresh == true)
         {
