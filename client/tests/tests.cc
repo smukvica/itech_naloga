@@ -284,6 +284,8 @@ TEST(Gui, UpdateTextureData) {
     for(int i = 0; i < c_texture_size; i++){
         for(int j = 0; j < c_screen_size; j++){
             if(j%(c_screen_size / params.number_of_fields) == 0 && j != 0)
+                EXPECT_EQ(g_texture_data[j * c_texture_size + i], 127);
+            else if((j + 1)%(c_screen_size / params.number_of_fields) == 0)
                 EXPECT_EQ(g_texture_data[j * c_texture_size + i], 0);
             else
                 EXPECT_EQ(g_texture_data[j * c_texture_size + i], 255);
