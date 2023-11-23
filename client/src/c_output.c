@@ -67,11 +67,12 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
 void *output_package(void *a_args){
     parameters *params = a_args;
     char data[get_limit("number_of_fields", 1) * 
-              get_limit("size_of_field", 1) + 4];
+              get_limit("size_of_field", 1) + params->status_field_size];
     for(int i = 0; i < params->number_of_fields; i++){
         printf("%s\t", params->names[i]);
     }
-    printf("status\n");
+    if(params->check_status == true)
+        printf("status\n");
     while(1){
         
 
@@ -90,15 +91,18 @@ void *output_package(void *a_args){
                     printf("%10u ", out);
             }
             // print also status field
-            memcpy(&out, &data[i], sizeof(char) * 4);
-            if(params->std_output != false)
+            memcpy(&out, &data[i], sizeof(char) * params->status_field_size);
+            if(params->std_output != false && params->check_status == true)
                 printf("%u\n", out);
+            else
+                printf("\n");
 
             // extract package number and bpm values to check for errors
             unsigned int package_id = out >> 16;
             unsigned int bpm_id =     (out & (0xF << 2)) >> 2;
             
-            check_package_order(*params, bpm_id, package_id);
+            if(params->check_status == true)
+                check_package_order(*params, bpm_id, package_id);
         }else{
             sleep(0);
         }

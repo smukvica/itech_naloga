@@ -6,8 +6,6 @@
 #define SAVE_FOLDER_NAME_LENGTH 256
 #define SAVE_FILE_NAME_LENGTH 100
 
-#define STATUS_FIELD_SIZE 4
-
 #define member_size(type, member) sizeof(((type *)0)->member)
 
 typedef struct parameters{
@@ -20,6 +18,8 @@ typedef struct parameters{
     char names[MAX_NAMES][MAX_NAME_LENGTH];
     bool file_write;
     bool std_output;
+    bool check_status;
+    int status_field_size;
     int port;
     int ip[4];
     char save_folder[SAVE_FOLDER_NAME_LENGTH];

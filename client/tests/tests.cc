@@ -19,6 +19,8 @@ parameters params = {.queue_size = 200000,
                      .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
                      .file_write = true,
                      .std_output = true,
+                     .check_status = true,
+                     .status_field_size = 4,
                      .port = 8888,
                      .ip = {127, 0, 0, 1}};
 
@@ -110,7 +112,7 @@ TEST(Queue, WriteFromQueueOutputOverflow) {
 
     int size_of_data = (params.size_of_field * 
                         params.number_of_fields + 
-                        STATUS_FIELD_SIZE);
+                        params.status_field_size);
 
     setup_queue(params);
     for(int i = 0; i < params.queue_size * size_of_data; i++){
@@ -134,7 +136,7 @@ TEST(Queue, WriteFromQueueGui) {
 
     int size_of_data = (params.size_of_field * 
                         params.number_of_fields + 
-                        STATUS_FIELD_SIZE);
+                        params.status_field_size);
 
     setup_queue(params);
     for(int i = 0; i < params.queue_size * size_of_data; i++){
@@ -154,7 +156,7 @@ TEST(Queue, WriteFromQueueGuiOverflow) {
     set_reader_index(GUI, 199750);
     int size_of_data = (params.size_of_field * 
                         params.number_of_fields + 
-                        STATUS_FIELD_SIZE);
+                        params.status_field_size);
     char data[size_of_data * c_samples];
 
     setup_queue(params);
@@ -176,7 +178,7 @@ TEST(Queue, WriteFromQueueGuiMaxLimit) {
     set_reader_index(GUI, 199500);
     int size_of_data = (params.size_of_field * 
                         params.number_of_fields + 
-                        STATUS_FIELD_SIZE);
+                        params.status_field_size);
     char data[size_of_data * c_samples] = { 0 };
 
     setup_queue(params);
@@ -233,6 +235,8 @@ TEST(File, ReadingConfig) {
     EXPECT_EQ(params.port, 8888);
     EXPECT_EQ(params.std_output, true);
     EXPECT_EQ(params.file_write, false);
+    EXPECT_EQ(params.check_status, true);
+    EXPECT_EQ(params.status_field_size, 4);
     EXPECT_STREQ(params.names[0], "a");
     EXPECT_STREQ(params.names[1], "b");
     EXPECT_STREQ(params.names[2], "c");
@@ -277,7 +281,7 @@ TEST(Gui, UpdateTextureData) {
     clear_texture(params);
 
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * c_samples]; 
+               get_limit("size_of_field", 1) + params.status_field_size) * c_samples]; 
 
     create_image_from_data(&data[0], params);
 

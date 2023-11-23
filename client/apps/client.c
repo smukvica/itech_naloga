@@ -156,6 +156,18 @@ int read_arguments(int a_argc, char *a_argv[], parameters *a_params){
             set_trace(1);
             c--;
         }
+        if(strcmp(a_argv[c], "check_status") == 0){
+            if(strcmp(a_argv[c+1], "true") == 0){
+                a_params->check_status = true;
+                a_params->status_field_size = 4;
+            }
+            else if(strcmp(a_argv[c+1], "false") == 0){
+                a_params->check_status = false;
+                a_params->status_field_size = 0;
+            }
+            else
+                printf("wrong usage of argument %s. see help\n", a_argv[c]);
+        }
         c += 2;
     }
     if(a_argc >= c + a_params->number_of_fields)
@@ -180,6 +192,8 @@ int main(int argc , char *argv[])
                          .names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"},
                          .file_write = true,
                          .std_output = true,
+                         .check_status = true,
+                         .status_field_size = 4,
                          .port = 8888,
                          .ip = {127, 0, 0, 1}};
 

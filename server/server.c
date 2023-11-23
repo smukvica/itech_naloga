@@ -146,7 +146,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in server, client;
         
     //Create socket
-    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+    socket_desc = socket(AF_INET , SOCK_DGRAM , 0);
     if (socket_desc == -1)
     {
         printf("Could not create socket");
@@ -155,7 +155,7 @@ int main(int argc , char *argv[])
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( 8888 );
+    server.sin_port = htons( 2048 );
         
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
@@ -164,15 +164,6 @@ int main(int argc , char *argv[])
         return -1;
     }
     printf("bind done\n");
-
-    listen(socket_desc , 1);
-
-    c = sizeof(struct sockaddr_in);
-	new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
-	if (new_socket<0)
-	{
-		printf("accept failed\n");
-	}
 
     char message[g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE];
 
@@ -195,9 +186,9 @@ int main(int argc , char *argv[])
 
             create_packet(message);
             if((rand() % 100) + 1 > g_skip_rate)
-                write(new_socket, message, g_num_of_fields * 
-                                           g_size_of_field + 
-                                           STATUS_FIELD_SIZE);
+                write(socket_desc, message, g_num_of_fields * 
+                                            g_size_of_field + 
+                                            STATUS_FIELD_SIZE);
             g_packets_sent++;
         }
     }

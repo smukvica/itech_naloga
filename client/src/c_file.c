@@ -16,7 +16,7 @@ void load_params(const char *a_file, parameters *a_params){
     char *line = NULL;
     ssize_t read;
     size_t len = 0;
-    char tf_values[2][6];
+    char tf_values[3][6];
     char names[MAX_NAMES*MAX_NAME_LENGTH] = {0};
     // if file doesn't exist don't read
     if(f != NULL){
@@ -34,6 +34,7 @@ void load_params(const char *a_file, parameters *a_params){
             sscanf(line, "writer: %s", tf_values[1]);
             sscanf(line, "folder: %s", &a_params->save_folder[0]);
             sscanf(line, "names: %329c", names);
+            sscanf(line, "check_status: %s", tf_values[2]);
         }
 
         int i = 0;
@@ -49,17 +50,29 @@ void load_params(const char *a_file, parameters *a_params){
         }
         
         int param_error = 0;
-
+        // std out
         if(strcmp(tf_values[0], "true") == 0)
             a_params->std_output = true;
         else if(strcmp(tf_values[0], "false") == 0)
             a_params->std_output = false;
         else
             param_error = 1;
+        // file write
         if(strcmp(tf_values[1], "true") == 0)
             a_params->file_write = true;
         else if(strcmp(tf_values[1], "false") == 0)
             a_params->file_write = false;
+        else
+            param_error = 1;
+        // check status
+        if(strcmp(tf_values[2], "true") == 0){
+            a_params->check_status = true;
+            a_params->status_field_size = 4;
+        }
+        else if(strcmp(tf_values[2], "false") == 0){
+            a_params->check_status = false;
+            a_params->status_field_size = 0;
+        }
         else
             param_error = 1;
         
@@ -95,11 +108,11 @@ void *file_writer(void *a_args){
     char filename[512];  // save file
     int file_num = 0;   // current file number
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * 
+               get_limit("size_of_field", 1) + params->status_field_size) * 
                get_limit("file_entries", 1)];
     
     int size_of_data = (params->number_of_fields * 
-                        params->size_of_field + STATUS_FIELD_SIZE);
+                        params->size_of_field + params->status_field_size);
     mkdir(params->save_folder, 0777);
     while(1){
         // gets data from queue
@@ -141,7 +154,7 @@ void file_reader(const char *a_file, parameters *a_params){
     }
 
     int size_of_data = (a_params->number_of_fields * 
-                        a_params->size_of_field + STATUS_FIELD_SIZE);
+                        a_params->size_of_field + a_params->status_field_size);
 
     fread(a_params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
     setup_queue(*a_params);

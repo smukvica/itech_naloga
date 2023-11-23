@@ -29,8 +29,11 @@ The client has a similar set of parameters as the server with an addition of a c
 * ***port*** - the port of the device to connect to
 * ***writer*** - set saving to files (**true** to save, **false** not to save)
 * ***output*** - set writing to standard out (**true** to write, **false** not to write)
+* ***check_status*** - set checking of packet status (**true** to check, **false** to not check)
 * ***folder*** - set the saving folder for files *ex. files/*
 * ***-trace*** - command line argument only. used to print function entries in program execution.
+
+*Note: check_status should be set to true if device sends status bytes and false if not.*
 
 Final *n* arguments are meant to be the names for the data fields. The names should be given as one name one argument.
 
@@ -47,6 +50,7 @@ Example of config file:
     port: 8888
     output: true
     writer: false
+    check_status: true
     folder: files/
     names: a b c d e
 
@@ -95,4 +99,4 @@ To run tests simply go into the **client/tests** folder, and run the following c
 
 The tests will run and the results will be displayed in the console.
 
-*Notice: for all tests to run successfully the config file used needs to be the one from example*
+*Note: for all tests to run successfully the config file used needs to be the one from example*

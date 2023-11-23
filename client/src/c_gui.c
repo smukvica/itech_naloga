@@ -82,7 +82,7 @@ void create_image_from_data(const char *a_data, parameters a_params){
     // index of sample in char array
     int size_of_data = (a_params.size_of_field * 
                         a_params.number_of_fields + 
-                        STATUS_FIELD_SIZE);
+                        a_params.status_field_size);
     // loop through fetched c_samples and draw on g_texture
     for(int k = 0; k < c_samples; k++){
         int f = k * size_of_data;
@@ -402,7 +402,7 @@ void *gui_setup(void *a_args){
 
     // data field to store c_samples
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + STATUS_FIELD_SIZE) * c_samples];
+               get_limit("size_of_field", 1) + params->status_field_size) * c_samples];
     char corrupt_packages[32];
 
     create_texture(*params);
