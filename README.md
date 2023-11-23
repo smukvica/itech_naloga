@@ -94,3 +94,5 @@ To run tests simply go into the **client/tests** folder, and run the following c
     cmake --build build --target test
 
 The tests will run and the results will be displayed in the console.
+
+*Notice: for all tests to run successfully the config file used needs to be the one from example*
