@@ -12,7 +12,7 @@ Server first reads a set of arguments to setup it's environment. If the argument
 
 The arguments that can be provided are as follows:
 * ***number_of_fields*** - sets the number of data fields in each packet (limited from **1** to **10**)
-* ***size_of_field*** - sets the size of each data field in packet in bytes (limited to **1**, **2** and **4**)
+* ***size_of_field*** - sets the size of each data field in packet in bytes (limited from **1** to **4**)
 * ***number_of_packets*** - sets the number of packets to be sent
 * ***number_of_bpm*** - sets the number of bpm the device will simulate
 * ***send_rate*** - sets the amount of packets sent each second (very high rates may not be reached - *ex. 20000*)
@@ -26,13 +26,13 @@ The server will continue to send th packets until all packets are sent or the pr
 The client has a similar set of parameters as the server with an addition of a couple more arguments:
 
 * ***queue_size*** - size of the buffer used to receive packets into (limited from **200.000** to **100.000.000**)
-* ***file_entries*** - number of entries in each file when saving (limited from **500** to **1000**)
+* ***file_entries*** - number of entries in each file when saving (limited from **500** to **10000**)
 * ***ip*** - the ip address of the device to connect to
 * ***port*** - the port of the device to connect to
 * ***writer*** - set saving to files (**true** to save, **false** not to save)
 * ***output*** - set writing to standard out (**true** to write, **false** not to write)
 * ***check_status*** - set checking of packet status (**true** to check, **false** to not check)
-* ***folder*** - set the saving folder for files *ex. files/*
+* ***folder*** - set the saving folder for files - *ex. files/*
 * ***-trace*** - command line argument only. used to print function entries in program execution.
 
 *Note: check_status should be set to true if device sends status bytes and false if not.*
