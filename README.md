@@ -48,7 +48,6 @@ Example of config file:
     number_of_bpm: 1
     queue_size: 200000
     file_entries: 1000
-    ip: 127.0.0.1
     port: 8888
     output: true
     writer: false
