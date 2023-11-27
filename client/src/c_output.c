@@ -71,7 +71,7 @@ void *output_package(void *a_args){
     for(int i = 0; i < params->number_of_fields; i++){
         printf("%s\t", params->names[i]);
     }
-    
+
     if(params->check_status == true)
         printf("status\n");
     else
@@ -97,10 +97,11 @@ void *output_package(void *a_args){
             }
             // print also status field
             memcpy(&out, &data[i], sizeof(char) * params->status_field_size);
-            if(params->std_output != false && params->check_status == true)
-                printf("%u\n", out);
-            else
-                printf("\n");
+            if(params->std_output != false)
+                if(params->check_status == true)
+                    printf("%u\n", out);
+                else
+                    printf("\n");
 
             // extract package number and bpm values to check for errors
             unsigned int package_id = out >> 16;
