@@ -35,11 +35,12 @@ void *read_package(void *a_arguments){
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     char server_reply[get_limit("number_of_fields", 1) * 
-                      get_limit("size_of_field", 1) + params->status_field_size];
+                      get_limit("size_of_field", 1)    + 
+                      params->status_field_size];
 	
     int size_of_data = params->number_of_fields * 
-                            params->size_of_field + 
-                            params->status_field_size;
+                       params->size_of_field + 
+                       params->status_field_size;
 
     // non-blocking socket
     socket_desc = socket(AF_INET , SOCK_DGRAM | SOCK_NONBLOCK, 0);
@@ -64,21 +65,30 @@ void *read_package(void *a_arguments){
 
     // measure time taken
     double t = omp_get_wtime();
+    double stop_time = 0;
+    double total_stop_time = 0;
     if(get_trace() == 1)
         printf("receiving data\n");
     
     socklen_t server_addr_len = sizeof(server);
 
     while(1){
+        stop_time = omp_get_wtime();
         while(get_start_stop() == 0){
             sleep(0);
             if(get_program_terminate() == 1){
                 close(socket_desc);
-                t = omp_get_wtime() - t;
+                double temp = omp_get_wtime();
+                total_stop_time += temp - stop_time;
+                t = temp - t - total_stop_time;
                 print_exit_data(t, received_packages);
                 return 0;
             }
         }
+        double temp = omp_get_wtime() - stop_time;
+        // only add time if we actually stop - more than 0.01 seconds
+        if(temp > 0.01)
+            total_stop_time += temp;
         
         // try to receive a package
         // check if there is data to read - select()
@@ -109,7 +119,7 @@ void *read_package(void *a_arguments){
         // signal to close the client or received nothing (server close)
         if(get_program_terminate() == 1){
             close(socket_desc);
-            t = omp_get_wtime() - t;
+            t = omp_get_wtime() - t - total_stop_time;
             print_exit_data(t, received_packages);
             return 0;
         }

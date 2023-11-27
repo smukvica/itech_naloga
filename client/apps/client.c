@@ -260,3 +260,13 @@ int main(int argc , char *argv[])
 
 	return 0;
 }
+
+
+/*
+    status field included in all fields change
+        fix number of fields
+        reading and writing packets fix
+        packet check fix
+        option to select which field is status
+
+*/
