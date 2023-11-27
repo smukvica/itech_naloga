@@ -27,8 +27,6 @@ void load_params(const char *a_file, parameters *a_params){
             sscanf(line, "number_of_packets: %d", &a_params->number_of_packets);
             sscanf(line, "number_of_bpm: %d", &a_params->number_of_bpm);
             sscanf(line, "file_entries: %d", &a_params->file_entries);
-            sscanf(line, "ip: %d.%d.%d.%d", &a_params->ip[0], &a_params->ip[1], 
-                                            &a_params->ip[2], &a_params->ip[3]);
             sscanf(line, "port: %d", &a_params->port);
             sscanf(line, "output: %s", tf_values[0]);
             sscanf(line, "writer: %s", tf_values[1]);

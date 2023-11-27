@@ -124,12 +124,6 @@ int read_arguments(int a_argc, char *a_argv[], parameters *a_params){
                 return 1;
             }
         }
-        if(strcmp(a_argv[c], "ip") == 0){
-            sscanf(a_argv[c+1], "%d.%d.%d.%d", &a_params->ip[0], 
-                                               &a_params->ip[1], 
-                                               &a_params->ip[2], 
-                                               &a_params->ip[3]);
-        }
         if(strcmp(a_argv[c], "port") == 0){
             a_params->port = atoi(a_argv[c+1]);
         }
@@ -194,8 +188,7 @@ int main(int argc , char *argv[])
                          .std_output = true,
                          .check_status = true,
                          .status_field_size = 4,
-                         .port = 8888,
-                         .ip = {127, 0, 0, 1}};
+                         .port = 8888};
 
     load_params("config", &params);
     setup_includes();

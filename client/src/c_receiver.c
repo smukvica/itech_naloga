@@ -39,17 +39,6 @@ void *read_package(void *a_arguments){
         exit(1);
 	}
 
-    // server settings
-    char ip[15];
-    sprintf(ip, "%d.%d.%d.%d", params->ip[0], 
-                               params->ip[1], 
-                               params->ip[2], 
-                               params->ip[3]);
-
-    server.sin_addr.s_addr = inet_addr(ip);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(params->port);
-
     // local settings to bind port to
 	my_addr.sin_addr.s_addr = INADDR_ANY;
 	my_addr.sin_family = AF_INET;
@@ -80,14 +69,12 @@ void *read_package(void *a_arguments){
         }
         // try to receive a package
         
-        int ret = recvfrom(socket_desc, 
-                           &server_reply, 
-                           params->number_of_fields * 
+        int ret = recv( socket_desc, 
+                        &server_reply, 
+                        params->number_of_fields * 
                             params->size_of_field + 
                             params->status_field_size,
-                           0,
-                           (struct sockaddr*) &server,
-                           &server_addr_len);
+                        0);
         if( ret < 0){
             puts("recv failed");
             return 0;

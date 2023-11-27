@@ -21,7 +21,6 @@ typedef struct parameters{
     bool check_status;
     int status_field_size;
     int port;
-    int ip[4];
     char save_folder[SAVE_FOLDER_NAME_LENGTH];
 }parameters;
 

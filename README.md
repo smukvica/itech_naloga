@@ -17,6 +17,8 @@ The arguments that can be provided are as follows:
 * ***number_of_bpm*** - sets the number of bpm the device will simulate
 * ***send_rate*** - sets the amount of packets sent each second (very high rates may not be reached - *ex. 20000*)
 * ***skip_rate*** - set the percent of packages to be skipped when sending (just the number without *%* sign)
+* ***ip*** - the ip address of the device to connect to
+* ***port*** - the port of the device to connect to
 * ***help*** - displays the help for arguments
 
 The server will continue to send th packets until all packets are sent or the program is otherwise terminated.
@@ -27,8 +29,6 @@ The client has a similar set of parameters as the server with an addition of a c
 
 * ***queue_size*** - size of the buffer used to receive packets into (limited from **200.000** to **100.000.000**)
 * ***file_entries*** - number of entries in each file when saving (limited from **500** to **10000**)
-* ***ip*** - the ip address of the device to connect to
-* ***port*** - the port of the device to connect to
 * ***writer*** - set saving to files (**true** to save, **false** not to save)
 * ***output*** - set writing to standard out (**true** to write, **false** not to write)
 * ***check_status*** - set checking of packet status (**true** to check, **false** to not check)

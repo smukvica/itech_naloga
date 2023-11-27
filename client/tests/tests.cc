@@ -21,8 +21,7 @@ parameters params = {.queue_size = 200000,
                      .std_output = true,
                      .check_status = true,
                      .status_field_size = 4,
-                     .port = 8888,
-                     .ip = {127, 0, 0, 1}};
+                     .port = 8888};
 
 TEST(Queue, CanWriteCheck){
     setup_queue(params);
@@ -228,10 +227,6 @@ TEST(File, ReadingConfig) {
     EXPECT_EQ(params.number_of_bpm, 1);
     EXPECT_EQ(params.queue_size, 200000);
     EXPECT_EQ(params.file_entries, 10000);
-    EXPECT_EQ(params.ip[0], 127);
-    EXPECT_EQ(params.ip[1], 0);
-    EXPECT_EQ(params.ip[2], 0);
-    EXPECT_EQ(params.ip[3], 1);
     EXPECT_EQ(params.port, 8888);
     EXPECT_EQ(params.std_output, true);
     EXPECT_EQ(params.file_write, false);

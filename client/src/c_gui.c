@@ -392,9 +392,8 @@ void *gui_setup(void *a_args){
 	SetTargetFPS(60);
     
     // variables to select gui elements
-	bool variables[12] = {false};
+	bool variables[9] = {false};
     bool name_variables[MAX_NAMES] = {false};
-    bool ip_vars[4] = {false};
 
     // track switching operation mode
     bool can_change = true;
@@ -467,32 +466,23 @@ void *gui_setup(void *a_args){
             DrawText("queue_size", 10, 90, 10, DARKGRAY);
             DrawText("number_of_bpm", 10, 130, 10, DARKGRAY);
             DrawText("file_entries", 10, 170, 10, DARKGRAY);
-            DrawText("ip", 10, 210, 10, DARKGRAY);
-            DrawText("port", 10, 250, 10, DARKGRAY);
+            DrawText("port", 10, 210, 10, DARKGRAY);
             DrawText("save folder", 130, 295, 10, DARKGRAY);
             DrawText("file name to read", 130, 335, 10, DARKGRAY);
-            DrawText("status field size", 10, 290, 10, DARKGRAY);
+            DrawText("status field size", 10, 250, 10, DARKGRAY);
 
-            GuiCheckBox((Rectangle){ 10, 330, 20, 20 }, 
+            GuiCheckBox((Rectangle){ 10, 305, 20, 20 }, 
                         " write to screen", &params->std_output);
-            GuiCheckBox((Rectangle){ 10, 355, 20, 20 }, 
+            GuiCheckBox((Rectangle){ 10, 330, 20, 20 }, 
                         " write to file", &params->file_write);
-            GuiCheckBox((Rectangle){ 10, 380, 20, 20 }, 
+            GuiCheckBox((Rectangle){ 10, 355, 20, 20 }, 
                         " check status", &params->check_status);
-            if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
+            if (GuiIntBox((Rectangle){ 10, 225, 100, 20 }, 
                         NULL, 
                         &params->port, 
                         1025, 
                         10000, 
-                        variables[6] & can_change)) variables[6] = !variables[6];
-            for(int i = 0; i < 4; i++){
-                if (GuiIntBox((Rectangle){ 10 + i * 25, 225, 24, 20 }, 
-                            NULL, 
-                            &params->ip[i], 
-                            0, 
-                            255, 
-                            ip_vars[i] & can_change)) ip_vars[i] = !ip_vars[i];
-            }
+                        variables[5] & can_change)) variables[5] = !variables[5];
             if (GuiIntBox((Rectangle){ 10, 185, 100, 20 }, 
                 NULL, 
                 &params->file_entries,
@@ -537,20 +527,20 @@ void *gui_setup(void *a_args){
             if (GuiCharBox((Rectangle){ 130, 350, 120, 20 }, 
                 NULL, 
                 &g_filename[0], 
-                variables[9] && can_change)) 
-                variables[9] = !variables[9];
+                variables[6] && can_change)) 
+                variables[6] = !variables[6];
             if (GuiCharBox((Rectangle){ 130, 310, 120, 20 }, 
                 NULL, 
                 &params->save_folder[0], 
-                variables[10] && can_change)) 
-                variables[10] = !variables[10];
-            if (GuiIntBox((Rectangle){ 10, 305, 100, 20 }, 
+                variables[7] && can_change)) 
+                variables[7] = !variables[7];
+            if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
                 NULL, 
                 &params->status_field_size, 
                 0,
                 4,
-                variables[11] && can_change)) 
-                variables[11] = !variables[11];
+                variables[8] && can_change)) 
+                variables[8] = !variables[8];
         }
 
 

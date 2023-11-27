@@ -100,6 +100,9 @@ void print_help(){
 
 int main(int argc , char *argv[])
 {
+
+    char ip[15] = "127.0.0.1";
+    int port = 8888;
     srand(time(NULL));
     int i = 1;
     if(argc > 1)
@@ -132,6 +135,12 @@ int main(int argc , char *argv[])
                 return 1;
             }
         }
+        if(strcmp(a_argv[i], "ip") == 0){
+            strcpy(ip, argv[i + 1]);
+        }
+        if(strcmp(a_argv[c], "port") == 0){
+            a_params->port = atoi(a_argv[c+1]);
+        }
         if(strcmp(argv[i], "send_rate") == 0){
             g_send_rate = atoi(argv[i+1]);
         }
@@ -154,8 +163,8 @@ int main(int argc , char *argv[])
         
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server.sin_port = htons( 8888 );
+    server.sin_addr.s_addr = inet_addr(ip);
+    server.sin_port = htons( port );
 
     connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
 
