@@ -12,9 +12,6 @@
 #include "c_includes.h"
 #include "c_queue.h"
 
-#define MY_PORT 2048
-
-
 // count pacages received
 int received_packages = 0;
 
@@ -46,7 +43,7 @@ void *read_package(void *a_arguments){
     // local settings to bind port to
 	my_addr.sin_addr.s_addr = INADDR_ANY;
 	my_addr.sin_family = AF_INET;
-	my_addr.sin_port = htons(MY_PORT);
+	my_addr.sin_port = htons(params->port);
 
     if (bind(socket_desc, (struct sockaddr*) &my_addr, sizeof(my_addr)) != 0)
     {
@@ -64,10 +61,13 @@ void *read_package(void *a_arguments){
     while(1){
         while(get_start_stop() == 0){
             sleep(0);
-            if(get_program_terminate() == 1)
+            if(get_program_terminate() == 1){
+                close(socket_desc);
                 return 0;
+            }
         }
         // try to receive a package
+        
         int ret = recvfrom(socket_desc, 
                            &server_reply, 
                            params->number_of_fields * 

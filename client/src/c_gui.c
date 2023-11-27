@@ -392,7 +392,7 @@ void *gui_setup(void *a_args){
 	SetTargetFPS(60);
     
     // variables to select gui elements
-	bool variables[11] = {false};
+	bool variables[12] = {false};
     bool name_variables[MAX_NAMES] = {false};
     bool ip_vars[4] = {false};
 
@@ -443,22 +443,22 @@ void *gui_setup(void *a_args){
             ClearBackground(WHITE);
             DrawRectangle(0, 0, 250, c_screen_size, RAYWHITE);
 
-            DrawText("Current Mode: ", 10, 450, 10, DARKGRAY);
+            DrawText("Current Mode: ", 135, 450, 10, DARKGRAY);
             switch (current_mode)
             {
             case passive:
-                DrawText("Waiting", 10, 460, 10, DARKGRAY);
+                DrawText("Waiting", 135, 460, 10, DARKGRAY);
                 break;
             case receiver:
-                DrawText("Receiving data", 10, 460, 10, DARKGRAY);
+                DrawText("Receiving data", 135, 460, 10, DARKGRAY);
                 break;
             default:
-                DrawText("Reading data", 10, 460, 10, DARKGRAY);
+                DrawText("Reading data", 135, 460, 10, DARKGRAY);
                 break;
             }
 
             sprintf(corrupt_packages, "package errors: %d", get_packet_errors());
-            DrawText(corrupt_packages, 10, 475, 10, DARKGRAY);
+            DrawText(corrupt_packages, 135, 475, 10, DARKGRAY);
 
             
 
@@ -471,10 +471,14 @@ void *gui_setup(void *a_args){
             DrawText("port", 10, 250, 10, DARKGRAY);
             DrawText("save folder", 130, 295, 10, DARKGRAY);
             DrawText("file name to read", 130, 335, 10, DARKGRAY);
-            GuiCheckBox((Rectangle){ 10, 290, 20, 20 }, 
+            DrawText("status field size", 10, 290, 10, DARKGRAY);
+
+            GuiCheckBox((Rectangle){ 10, 330, 20, 20 }, 
                         " write to screen", &params->std_output);
-            GuiCheckBox((Rectangle){ 10, 315, 20, 20 }, 
+            GuiCheckBox((Rectangle){ 10, 355, 20, 20 }, 
                         " write to file", &params->file_write);
+            GuiCheckBox((Rectangle){ 10, 380, 20, 20 }, 
+                        " check status", &params->check_status);
             if (GuiIntBox((Rectangle){ 10, 265, 100, 20 }, 
                         NULL, 
                         &params->port, 
@@ -540,10 +544,17 @@ void *gui_setup(void *a_args){
                 &params->save_folder[0], 
                 variables[10] && can_change)) 
                 variables[10] = !variables[10];
+            if (GuiIntBox((Rectangle){ 10, 305, 100, 20 }, 
+                NULL, 
+                &params->status_field_size, 
+                0,
+                4,
+                variables[11] && can_change)) 
+                variables[11] = !variables[11];
         }
 
 
-		if (GuiButton((Rectangle){ 10, 350, 50, 20 }, "Start") && 
+		if (GuiButton((Rectangle){ 10, 415, 50, 20 }, "Start") && 
             current_mode == passive)
 		{
             if(get_trace() == 1)
@@ -556,7 +567,7 @@ void *gui_setup(void *a_args){
             g_refresh = true;
 		}
 
-        if (GuiButton((Rectangle){ 10, 375, 50, 20 }, "Stop") && 
+        if (GuiButton((Rectangle){ 10, 440, 50, 20 }, "Stop") && 
             current_mode == receiver)
         {
             if(get_trace() == 1)
@@ -587,7 +598,7 @@ void *gui_setup(void *a_args){
                          DARKGRAY);
             }
             
-            if(GuiButton((Rectangle){ 130, 450, 75, 20 }, "Refresh data")){
+            if(GuiButton((Rectangle){ 130, 420, 75, 20 }, "Refresh data")){
                 if(get_trace() == 1)
                     printf("refreshing data\n");
                 g_refresh = true;

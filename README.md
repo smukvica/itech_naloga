@@ -4,6 +4,8 @@ Client to read packets from network device and display, write and save the data.
 
 ## Usage
 
+When using the server simulator the simulator is meant to run on the localhost where the connecting port is set to 8888. The actual device is using a different ip and port that need to be checked for the specific device.
+
 ### Server
 
 Server first reads a set of arguments to setup it's environment. If the arguments aren't provided the default values are used.

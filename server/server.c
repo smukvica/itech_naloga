@@ -154,16 +154,10 @@ int main(int argc , char *argv[])
         
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( 2048 );
-        
-    //Bind
-    if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
-    {
-        perror("bind failed. Error");
-        return -1;
-    }
-    printf("bind done\n");
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_port = htons( 8888 );
+
+    connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
 
     char message[g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE];
 
@@ -186,9 +180,9 @@ int main(int argc , char *argv[])
 
             create_packet(message);
             if((rand() % 100) + 1 > g_skip_rate)
-                write(socket_desc, message, g_num_of_fields * 
+                send(socket_desc, message, g_num_of_fields * 
                                             g_size_of_field + 
-                                            STATUS_FIELD_SIZE);
+                                            STATUS_FIELD_SIZE, 0);
             g_packets_sent++;
         }
     }

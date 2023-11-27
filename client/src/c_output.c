@@ -71,8 +71,13 @@ void *output_package(void *a_args){
     for(int i = 0; i < params->number_of_fields; i++){
         printf("%s\t", params->names[i]);
     }
+    
     if(params->check_status == true)
         printf("status\n");
+    else
+        printf("\n");
+    
+
     while(1){
         
 
