@@ -30,7 +30,9 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
     else{
         // expected value is different from actual
         if(check_bpm != a_bpm_id){    
-            printf("zaporedje bpm napačno: %d %d\n", check_bpm, a_bpm_id);
+            printf("zaporedje bpm napačno:\nexpected: %d\nactual: %d\n", 
+                    check_bpm, 
+                    a_bpm_id);
             bpm_errors++;
         }
         // update expected value for next package
@@ -44,7 +46,9 @@ void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
         // number is larger than max available bits
         if(check_packet_num + 1 != a_package_id &&
            check_packet_num != max_16_bit_value){ 
-            printf("zaporedje paketov napačno\n");
+            printf("zaporedje paketov napačno:\nexpected: %d\nactual: %d\n", 
+                    check_packet_num + 1,
+                    a_package_id);
             if(previously_error == 0){  // first wrong package
                 previously_error = 1;
             }
