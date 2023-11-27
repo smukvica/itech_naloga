@@ -135,11 +135,11 @@ int main(int argc , char *argv[])
                 return 1;
             }
         }
-        if(strcmp(a_argv[i], "ip") == 0){
+        if(strcmp(argv[i], "ip") == 0){
             strcpy(ip, argv[i + 1]);
         }
-        if(strcmp(a_argv[c], "port") == 0){
-            a_params->port = atoi(a_argv[c+1]);
+        if(strcmp(argv[i], "port") == 0){
+            port = atoi(argv[i+1]);
         }
         if(strcmp(argv[i], "send_rate") == 0){
             g_send_rate = atoi(argv[i+1]);
