@@ -15,6 +15,16 @@
 // count pacages received
 int received_packages = 0;
 
+void print_exit_data(double time, int packages){
+    printf("terminate receiver\n");
+    sleep(1);
+    printf("total packages:\t\t%d\n"
+            "total time running:\t%f\n"
+            "packages per second:\t%f\n", 
+            packages, time, 
+            (double)packages / time);
+}
+
 void *read_package(void *a_arguments){
     parameters *params = a_arguments;
     struct sockaddr_in server, my_addr;
@@ -63,6 +73,8 @@ void *read_package(void *a_arguments){
             sleep(0);
             if(get_program_terminate() == 1){
                 close(socket_desc);
+                t = omp_get_wtime() - t;
+                print_exit_data(t, received_packages);
                 return 0;
             }
         }
@@ -88,14 +100,8 @@ void *read_package(void *a_arguments){
         // signal to close the client or received nothing (server close)
         if(get_program_terminate() == 1 || ret == 0){
             close(socket_desc);
-            t = (omp_get_wtime() - t);
-            printf("terminate receiver\n");
-            sleep(1);
-            printf("total packages:\t\t%d\n"
-                   "total time running:\t%f\n"
-                   "packages per second:\t%f\n", 
-                    received_packages, t, 
-                    (double)received_packages / t);
+            t = omp_get_wtime() - t;
+            print_exit_data(t, received_packages);
             return 0;
         }
     }

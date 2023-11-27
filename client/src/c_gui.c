@@ -443,22 +443,22 @@ void *gui_setup(void *a_args){
             ClearBackground(WHITE);
             DrawRectangle(0, 0, 250, c_screen_size, RAYWHITE);
 
-            DrawText("Current Mode: ", 135, 450, 10, DARKGRAY);
+            DrawText("Current Mode: ", 130, 450, 10, DARKGRAY);
             switch (current_mode)
             {
             case passive:
-                DrawText("Waiting", 135, 460, 10, DARKGRAY);
+                DrawText("Waiting", 130, 460, 10, DARKGRAY);
                 break;
             case receiver:
-                DrawText("Receiving data", 135, 460, 10, DARKGRAY);
+                DrawText("Receiving data", 130, 460, 10, DARKGRAY);
                 break;
             default:
-                DrawText("Reading data", 135, 460, 10, DARKGRAY);
+                DrawText("Reading data", 130, 460, 10, DARKGRAY);
                 break;
             }
 
             sprintf(corrupt_packages, "package errors: %d", get_packet_errors());
-            DrawText(corrupt_packages, 135, 475, 10, DARKGRAY);
+            DrawText(corrupt_packages, 130, 475, 10, DARKGRAY);
 
             
 
