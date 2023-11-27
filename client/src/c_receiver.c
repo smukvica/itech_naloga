@@ -29,10 +29,22 @@ void *read_package(void *a_arguments){
     parameters *params = a_arguments;
     struct sockaddr_in server, my_addr;
     int socket_desc;
+    fd_set rd;          // set to hold socket
+    struct timeval tv;
+
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
     char server_reply[get_limit("number_of_fields", 1) * 
                       get_limit("size_of_field", 1) + params->status_field_size];
 	
-    socket_desc = socket(AF_INET , SOCK_DGRAM , 0);
+    int size_of_data = params->number_of_fields * 
+                            params->size_of_field + 
+                            params->status_field_size;
+
+    // non-blocking socket
+    socket_desc = socket(AF_INET , SOCK_DGRAM | SOCK_NONBLOCK, 0);
+
+    
 	if (socket_desc == -1)
 	{
 		printf("Could not create socket");
@@ -67,14 +79,24 @@ void *read_package(void *a_arguments){
                 return 0;
             }
         }
-        // try to receive a package
         
-        int ret = recv( socket_desc, 
-                        &server_reply, 
-                        params->number_of_fields * 
-                            params->size_of_field + 
-                            params->status_field_size,
-                        0);
+        // try to receive a package
+        // check if there is data to read - select()
+        // if it is we read bytes until we reach desired size
+        int ret = 0;
+        FD_ZERO( & rd);
+        FD_SET(socket_desc, & rd);
+        select(socket_desc + 1, &rd, NULL, NULL, &tv);
+        if (FD_ISSET(socket_desc, &rd)){
+            int bytes_read = 0;
+            while(bytes_read < size_of_data){
+                ret = recv( socket_desc, 
+                            &server_reply + bytes_read, 
+                            size_of_data - bytes_read,
+                            0);
+                bytes_read += ret;
+            }
+        }
         if( ret < 0){
             puts("recv failed");
             return 0;
@@ -85,7 +107,7 @@ void *read_package(void *a_arguments){
             write_to_queue(server_reply, 1, RECEIVER, *params);
         }
         // signal to close the client or received nothing (server close)
-        if(get_program_terminate() == 1 || ret == 0){
+        if(get_program_terminate() == 1){
             close(socket_desc);
             t = omp_get_wtime() - t;
             print_exit_data(t, received_packages);

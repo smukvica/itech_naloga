@@ -26,11 +26,11 @@ int previously_error = 0;
 // checks if 2 consecutive packages are in order
 void check_package_order(parameters a_params, int a_bpm_id, int a_package_id){
     if(check_bpm == -1) // no packages checked before
-        check_bpm = a_bpm_id;
+        check_bpm = (a_bpm_id + 1) % a_params.number_of_bpm;
     else{
         // expected value is different from actual
         if(check_bpm != a_bpm_id){    
-            printf("zaporedje bpm napačno\n");
+            printf("zaporedje bpm napačno: %d %d\n", check_bpm, a_bpm_id);
             bpm_errors++;
         }
         // update expected value for next package
