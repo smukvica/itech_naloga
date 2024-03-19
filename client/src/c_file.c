@@ -65,11 +65,9 @@ void load_params(const char *a_file, parameters *a_params){
         // check status
         if(strcmp(tf_values[2], "true") == 0){
             a_params->check_status = true;
-            a_params->status_field_size = 4;
         }
         else if(strcmp(tf_values[2], "false") == 0){
             a_params->check_status = false;
-            a_params->status_field_size = 0;
         }
         else
             param_error = 1;
@@ -106,11 +104,11 @@ void *file_writer(void *a_args){
     char filename[512];  // save file
     int file_num = 0;   // current file number
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + params->status_field_size) * 
+               get_limit("size_of_field", 1)) * 
                get_limit("file_entries", 1)];
     
     int size_of_data = (params->number_of_fields * 
-                        params->size_of_field + params->status_field_size);
+                        params->size_of_field);
     mkdir(params->save_folder, 0777);
     while(1){
         // gets data from queue
@@ -152,7 +150,7 @@ void file_reader(const char *a_file, parameters *a_params){
     }
 
     int size_of_data = (a_params->number_of_fields * 
-                        a_params->size_of_field + a_params->status_field_size);
+                        a_params->size_of_field);
 
     fread(a_params, sizeof(parameters) - member_size(parameters, save_folder), 1, f);
     setup_queue(*a_params);

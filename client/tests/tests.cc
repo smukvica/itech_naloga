@@ -20,7 +20,6 @@ parameters params = {.queue_size = 200000,
                      .file_write = true,
                      .std_output = true,
                      .check_status = true,
-                     .status_field_size = 4,
                      .port = 8888};
 
 TEST(Queue, CanWriteCheck){
@@ -85,33 +84,32 @@ TEST(Queue, WriteToQueue) {
 }
 
 TEST(Queue, WriteFromQueueOutput) {
-    char data[(params.size_of_field * params.number_of_fields + 4)];
+    char data[(params.size_of_field * params.number_of_fields)];
 
     set_writer_index(1);
     set_reader_index(OUTPUT, 0);
 
     setup_queue(params);
-    for(int i = 0; i < params.size_of_field * params.number_of_fields + 4; i++){
+    for(int i = 0; i < params.size_of_field * params.number_of_fields; i++){
         set_queue(i, i % 256);
     }
     get_from_queue(&data[0], 1, OUTPUT, params);
 
     EXPECT_EQ(get_reader_index(OUTPUT), 1);
-    for(int i = 0; i < params.size_of_field * params.number_of_fields + 4; i++){
+    for(int i = 0; i < params.size_of_field * params.number_of_fields; i++){
         EXPECT_EQ(get_queue(i), data[i]);
     }
     free_queue();
 }
 
 TEST(Queue, WriteFromQueueOutputOverflow) {
-    char data[(params.size_of_field * params.number_of_fields + 4)] = {22};
+    char data[(params.size_of_field * params.number_of_fields)] = {22};
 
     set_writer_index(100);
     set_reader_index(OUTPUT, 199950);
 
     int size_of_data = (params.size_of_field * 
-                        params.number_of_fields + 
-                        params.status_field_size);
+                        params.number_of_fields);
 
     setup_queue(params);
     for(int i = 0; i < params.queue_size * size_of_data; i++){
@@ -134,8 +132,7 @@ TEST(Queue, WriteFromQueueGui) {
     char data[(params.size_of_field * params.number_of_fields + 4) * 500];
 
     int size_of_data = (params.size_of_field * 
-                        params.number_of_fields + 
-                        params.status_field_size);
+                        params.number_of_fields);
 
     setup_queue(params);
     for(int i = 0; i < params.queue_size * size_of_data; i++){
@@ -154,8 +151,7 @@ TEST(Queue, WriteFromQueueGuiOverflow) {
     set_writer_index(300);
     set_reader_index(GUI, 199750);
     int size_of_data = (params.size_of_field * 
-                        params.number_of_fields + 
-                        params.status_field_size);
+                        params.number_of_fields);
     char data[size_of_data * c_samples];
 
     setup_queue(params);
@@ -176,8 +172,7 @@ TEST(Queue, WriteFromQueueGuiMaxLimit) {
     set_writer_index(300);
     set_reader_index(GUI, 199500);
     int size_of_data = (params.size_of_field * 
-                        params.number_of_fields + 
-                        params.status_field_size);
+                        params.number_of_fields);
     char data[size_of_data * c_samples] = { 0 };
 
     setup_queue(params);
@@ -231,7 +226,6 @@ TEST(File, ReadingConfig) {
     EXPECT_EQ(params.std_output, true);
     EXPECT_EQ(params.file_write, false);
     EXPECT_EQ(params.check_status, true);
-    EXPECT_EQ(params.status_field_size, 4);
     EXPECT_STREQ(params.names[0], "a");
     EXPECT_STREQ(params.names[1], "b");
     EXPECT_STREQ(params.names[2], "c");
@@ -276,7 +270,7 @@ TEST(Gui, UpdateTextureData) {
     clear_texture(params);
 
     char data[(get_limit("number_of_fields", 1) * 
-               get_limit("size_of_field", 1) + params.status_field_size) * c_samples]; 
+               get_limit("size_of_field", 1)) * c_samples]; 
 
     create_image_from_data(&data[0], params);
 

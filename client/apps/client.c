@@ -153,11 +153,9 @@ int read_arguments(int a_argc, char *a_argv[], parameters *a_params){
         if(strcmp(a_argv[c], "check_status") == 0){
             if(strcmp(a_argv[c+1], "true") == 0){
                 a_params->check_status = true;
-                a_params->status_field_size = 4;
             }
             else if(strcmp(a_argv[c+1], "false") == 0){
                 a_params->check_status = false;
-                a_params->status_field_size = 0;
             }
             else
                 printf("wrong usage of argument %s. see help\n", a_argv[c]);
@@ -187,7 +185,6 @@ int main(int argc , char *argv[])
                          .file_write = true,
                          .std_output = true,
                          .check_status = true,
-                         .status_field_size = 4,
                          .port = 8888};
 
     load_params("config", &params);
@@ -268,5 +265,12 @@ int main(int argc , char *argv[])
         reading and writing packets fix
         packet check fix
         option to select which field is status
+
+    code organisation
+        more comments ?
+        identation
+    
+    README
+        update where it's needed
 
 */

@@ -19,7 +19,6 @@ typedef struct parameters{
     bool file_write;
     bool std_output;
     bool check_status;
-    int status_field_size;
     int port;
     char save_folder[SAVE_FOLDER_NAME_LENGTH];
 }parameters;

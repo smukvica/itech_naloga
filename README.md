@@ -92,7 +92,7 @@ For compiling and using the client the [raylib](https://github.com/raysan5/rayli
 
 ## Testing
 
-To run tests simply go into the **client/tests** folder, and run the following commands:
+To run tests simply go into the **client** folder, and run the following commands:
 
     cmake . -B build
     cmake --build build 

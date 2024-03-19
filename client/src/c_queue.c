@@ -31,8 +31,7 @@ int index_is_smaller(int a_reader, int a_writer, int a_size, parameters a_params
 // only a_writer thread and receiver thread write (not at same time)
 void write_to_queue(char *a_data, int a_size, int a_id, parameters a_params){
     int size_of_data = (a_params.number_of_fields * 
-                        a_params.size_of_field + 
-                        a_params.status_field_size);
+                        a_params.size_of_field);
     // copy a_data to queue
     memcpy(queue + writer_index * size_of_data,
            a_data, 
@@ -63,8 +62,7 @@ int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
     // we can get a_data
     if(can_write){
         int size_of_data = (a_params.number_of_fields * 
-                            a_params.size_of_field + 
-                            a_params.status_field_size);
+                            a_params.size_of_field);
         int i1, s1, i2, s2;
         // index of first chunk is current a_reader index
         i1 = r;
@@ -97,7 +95,7 @@ int get_from_queue(char *a_data, int a_size, int a_id, parameters a_params){
 void setup_queue(parameters a_params){
     queue = malloc((sizeof(char) * 
                     a_params.number_of_fields * 
-                    a_params.size_of_field + a_params.status_field_size) * 
+                    a_params.size_of_field) * 
                     a_params.queue_size);
 
     sem_init(&semaphore_q, 0, 1);

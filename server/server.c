@@ -10,8 +10,6 @@
 #include <math.h>
 #include <time.h>
 
-#define STATUS_FIELD_SIZE 4
-
 const unsigned int c_limits_of_data[4] = {0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 const int c_packet_num_start_bit = 16;
 const int c_bmp_num_start_bit = 2;
@@ -19,15 +17,15 @@ const int c_bmp_num_start_bit = 2;
 const float c_pi_180 = 3.141/180;
 
 int g_packets_sent = 0;
-int g_number_of_packets = 100000;
+int g_number_of_packets = 10000;
 int g_number_of_bpm = 1;
 int g_current_bpm = 0;
 
 int g_num_of_fields = 3;
 int g_size_of_field = 4; // size in bytes
 
-int g_send_rate = 10000;
-int g_skip_rate = 0;
+int g_send_rate = 50;
+int g_skip_rate = 50;
 
 
 void create_byte(int a_num, char *a_data){
@@ -54,15 +52,15 @@ void create_packet(char *a_packet){
     char data[g_size_of_field];
 
     // for each field create data and copies to fields
-    for(int i = 0; i < g_num_of_fields; i++){
+    for(int i = 0; i < g_num_of_fields - 1; i++){
         create_byte(g_packets_sent, data);
         memcpy(fields + i * g_size_of_field, &data, sizeof(char) * g_size_of_field);
     }
     // copies status field at the end
-    memcpy(fields + g_num_of_fields * g_size_of_field, &status, sizeof(int));
+    memcpy(fields + (g_num_of_fields-1) * g_size_of_field, &status, sizeof(char) * g_size_of_field);
 
     // copies the final fields to packet to send out
-    memcpy(a_packet, fields, g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE);
+    memcpy(a_packet, fields, g_num_of_fields * g_size_of_field);
 
     // prints to std out
     unsigned int out = 0;
@@ -70,7 +68,7 @@ void create_packet(char *a_packet){
         memcpy(&out, &fields[i], sizeof(char) * g_size_of_field);
         printf("%10u ", out);
     }
-    printf("%u\n", status);
+    printf("\n");
 }
 
 void print_argument(const char *a_arg, const char *a_explain, const char *a_usage){
@@ -168,7 +166,7 @@ int main(int argc , char *argv[])
 
     connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
 
-    char message[g_num_of_fields * g_size_of_field + STATUS_FIELD_SIZE];
+    char message[g_num_of_fields * g_size_of_field];
 
     double t = omp_get_wtime();
 
@@ -190,8 +188,7 @@ int main(int argc , char *argv[])
             create_packet(message);
             if((rand() % 100) + 1 > g_skip_rate)
                 send(socket_desc, message, g_num_of_fields * 
-                                            g_size_of_field + 
-                                            STATUS_FIELD_SIZE, 0);
+                                            g_size_of_field, 0);
             g_packets_sent++;
         }
     }

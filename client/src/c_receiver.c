@@ -35,12 +35,10 @@ void *read_package(void *a_arguments){
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     char server_reply[get_limit("number_of_fields", 1) * 
-                      get_limit("size_of_field", 1)    + 
-                      params->status_field_size];
+                      get_limit("size_of_field", 1)];
 	
     int size_of_data = params->number_of_fields * 
-                       params->size_of_field + 
-                       params->status_field_size;
+                       params->size_of_field;
 
     // non-blocking socket
     socket_desc = socket(AF_INET , SOCK_DGRAM | SOCK_NONBLOCK, 0);
