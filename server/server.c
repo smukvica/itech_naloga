@@ -17,15 +17,15 @@ const int c_bmp_num_start_bit = 2;
 const float c_pi_180 = 3.141/180;
 
 int g_packets_sent = 0;
-int g_number_of_packets = 10000;
+int g_number_of_packets = 1000000;
 int g_number_of_bpm = 1;
 int g_current_bpm = 0;
 
 int g_num_of_fields = 3;
 int g_size_of_field = 4; // size in bytes
 
-int g_send_rate = 50;
-int g_skip_rate = 50;
+int g_send_rate = 500;
+int g_skip_rate = 0;
 
 
 void create_byte(int a_num, char *a_data){
