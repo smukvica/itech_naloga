@@ -468,7 +468,6 @@ void *gui_setup(void *a_args){
             DrawText("port", 10, 210, 10, DARKGRAY);
             DrawText("save folder", 130, 295, 10, DARKGRAY);
             DrawText("file name to read", 130, 335, 10, DARKGRAY);
-            DrawText("status field size", 10, 250, 10, DARKGRAY);
 
             GuiCheckBox((Rectangle){ 10, 305, 20, 20 }, 
                         " write to screen", &params->std_output);
